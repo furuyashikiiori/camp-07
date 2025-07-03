@@ -61,6 +61,6 @@ func main() {
 
 func (app *App) healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	response := map[string]string{"status": "ok"}
+	response := map[string]string{"status": "ok繋がってるよ!"}
 	json.NewEncoder(w).Encode(response)
 }

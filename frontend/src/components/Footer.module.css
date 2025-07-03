@@ -1,0 +1,17 @@
+.footer {
+  background-color: #4b5563; /* gray-600相当 */
+  color: white;
+  padding: 1rem;
+  margin-top: auto;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footerText {
+  margin: 0;
+  font-size: 0.875rem;
+}

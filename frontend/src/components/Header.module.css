@@ -1,0 +1,31 @@
+.header {
+  background-color: #4b5563; /* gray-600相当 */
+  color: white;
+  padding: 1rem;
+}
+
+.nav {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1rem;
+}
+
+.navLink {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: #d1d5db; /* gray-200相当 */
+  background-color: rgba(255, 255, 255, 0.1);
+}

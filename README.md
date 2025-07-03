@@ -30,8 +30,7 @@
 1. リポジトリをクローン
 
 ```bash
-git clone <https://github.com/furuyashikiiori/camp-07>
-cd <project-name>
+git clone https://github.com/furuyashikiiori/camp-07
 ```
 
 2. フロントエンドの依存関係をインストール
