@@ -63,7 +63,7 @@ cd frontend
 npm run dev
 ```
 
-フロントエンドは http://localhost:3000 で起動します。
+フロントエンドは http://localhost:3000 で起動
 
 ### バックエンド
 
@@ -72,7 +72,8 @@ cd backend
 go run main.go
 ```
 
-バックエンドは http://localhost:8080 で起動します。
+バックエンドは http://localhost:8080 で起動
+お試し　 http://localhost:8080/api/health
 
 ## API エンドポイント
 
