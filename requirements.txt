@@ -1,0 +1,24 @@
+# システム要件
+
+## 必要なソフトウェア
+- Node.js (v18以上)
+- Go (v1.21以上)
+- SQLite3
+
+## フロントエンド依存関係
+- Next.js
+- React
+- TypeScript
+- ESLint
+
+## バックエンド依存関係
+- github.com/gorilla/mux
+- github.com/mattn/go-sqlite3
+
+## データベース
+- SQLite3
+
+## 推奨開発環境
+- VS Code
+- Go拡張機能
+- ES7+ React/Redux/React-Native snippets
