@@ -1,61 +1,112 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
 
 export default function NewProfilePage() {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    title: '',
+    bio: '',
+    birthday: '',
+    birthplace: '',
+    hobby: '',
+    sns: '',
+    optionalFields: [
+      { label: '', value: '' },
+      { label: '', value: '' },
+      { label: '', value: '' },
+    ],
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number, fieldType?: 'label' | 'value') => {
+    const { name, value } = e.target;
+
+    if (index !== undefined && fieldType) {
+      const updated = [...formData.optionalFields];
+      updated[index][fieldType] = value;
+      setFormData({ ...formData, optionalFields: updated });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: プロフィール作成のロジックを実装
-    console.log('新しいプロフィール:', { name, description });
-    router.push('/mypage');
+
+    if (!formData.name.trim()) {
+      alert('名前は必須です。');
+      return;
+    }
+
+    console.log('送信内容:', formData);
+    alert('送信しました（仮）');
   };
 
   return (
     <div className={styles.container}>
-      <Link href="/mypage" className={styles.backLink}>
-        &lt; Back MyPage
+      <Link href="/" className={styles.backLink}>
+        &lt; Back StartPage
       </Link>
       <div className={styles.overlay}>
-        <h1 className={styles.title}>New Profile</h1>
-        
+        <h1 className={styles.title}>プロフィール新規作成</h1>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="name" className={styles.label}>
-              プロフィール名
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={styles.input}
-              required
-            />
-          </div>
-          
-          <div className={styles.inputGroup}>
-            <label htmlFor="description" className={styles.label}>
-              説明
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={styles.textarea}
-              rows={4}
-              required
-            />
-          </div>
-          
+          <label>
+            名前*：
+            <input type="text" name="name" required value={formData.name} onChange={handleChange} />
+          </label>
+
+          <label>
+            肩書き：
+            <input type="text" name="title" value={formData.title} onChange={handleChange} />
+          </label>
+
+          <label>
+            一言Bio：
+            <textarea name="bio" value={formData.bio} onChange={handleChange} />
+          </label>
+
+          <label>
+            誕生日：
+            <input type="date" name="birthday" value={formData.birthday} onChange={handleChange} />
+          </label>
+
+          <label>
+            出身地：
+            <input type="text" name="birthplace" value={formData.birthplace} onChange={handleChange} />
+          </label>
+
+          <label>
+            趣味：
+            <input type="text" name="hobby" value={formData.hobby} onChange={handleChange} />
+          </label>
+
+          <label>
+            SNSリンク：
+            <input type="url" name="sns" value={formData.sns} onChange={handleChange} />
+          </label>
+
+          <h3>任意の項目（最大3つ）</h3>
+          {formData.optionalFields.map((field, index) => (
+            <div key={index} className={styles.optionalField}>
+              <input
+                type="text"
+                placeholder="項目名"
+                value={field.label}
+                onChange={(e) => handleChange(e, index, 'label')}
+              />
+              <input
+                type="text"
+                placeholder="内容"
+                value={field.value}
+                onChange={(e) => handleChange(e, index, 'value')}
+              />
+            </div>
+          ))}
+
           <button type="submit" className={styles.submitButton}>
-            作成
+            登録する
           </button>
         </form>
       </div>
