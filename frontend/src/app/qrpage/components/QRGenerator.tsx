@@ -15,7 +15,7 @@ const QRGenerator: React.FC = () => {
     const generateInitialQR = async () => {
       try {
         const baseUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://qrsona.onrender.com' 
+          ? 'https://qrsona.vercel.app' 
           : 'http://localhost:3000';
         const urlWithTimestamp = `${baseUrl}/mypage?t=${Date.now()}`;
         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-qr`, {
