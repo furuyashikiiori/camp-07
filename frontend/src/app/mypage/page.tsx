@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
+import Link from 'next/link'
 
 type Profile = {
   id: number;
@@ -33,6 +34,9 @@ export default function ProfilePage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/" className={styles.backLink}>
+        &lt; Back StartPage
+      </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>MyProfile Page</h1>
 

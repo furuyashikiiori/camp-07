@@ -27,7 +27,7 @@
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 2.8rem;
   color: #77a0ed;
   margin-bottom: 20px;
   text-align: center;
@@ -64,16 +64,32 @@
 }
 
 .cardTitle {
-  color: #007bff; /* 青文字 */
+  color: #007bff;
   margin-bottom: 8px;
   font-size: 1.2rem;
 }
 
 .cardDescription {
-  color: #007bff; /* 青文字 */
+  color: #007bff;
 }
 
 .message {
-  color: #007bff;
+  color: #77a0ed;
   text-align: center;
+}
+
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8; 
 }
