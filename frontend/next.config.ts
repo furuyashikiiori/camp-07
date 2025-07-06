@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
         destination:
           process.env.NODE_ENV === "development"
             ? "http://localhost:8080/api/:path*"
-            : "https://https://qrsona-backend.onrender.comapi/:path*",
+            : "https://qrsona-backend.onrender.com/api/:path*",
       },
     ];
   },
