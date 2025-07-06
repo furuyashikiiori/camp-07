@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: qrsona-backend
+    runtime: go
+    env: go
+    buildCommand: cd backend && go build -o main .
+    startCommand: cd backend && ./main
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: qrsona-postgres
+          property: connectionString
+      - key: GIN_MODE
+        value: release
+    healthCheckPath: /health
+
+databases:
+  - name: qrsona-postgres
+    engine: postgres
+    databaseName: qrsona
+    user: qrsona_user
+    plan: free
