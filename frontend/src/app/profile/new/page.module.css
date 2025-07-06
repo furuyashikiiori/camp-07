@@ -1,8 +1,6 @@
 .container {
-  position: relative;
   min-height: 100vh;
-  width: 100%;
-  background-image: url('/backpicPC.png');
+  background-image: url('/bg-profile-new-pc.jpg');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -13,94 +11,83 @@
 
 @media (max-width: 768px) {
   .container {
-    background-image: url('/backpicMobile.png');
+    background-image: url('/bg-profile-new-mobile.jpg');
   }
 }
 
 .overlay {
-  background-color: rgba(255, 255, 255, 0.4);
-  border-radius: 20px;
-  padding: 100px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 16px;
   max-width: 600px;
   width: 100%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .title {
-  font-size: 2.8rem;
-  color: #77a0ed;
-  margin-bottom: 30px;
   text-align: center;
+  color: #007bff;
+  margin-bottom: 24px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
-.inputGroup {
+.form label {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  font-weight: bold;
+  color: #007bff;
 }
 
-.label {
-  font-size: 1.1rem;
-  color: #77a0ed;
-  font-weight: 500;
-}
-
-.input,
-.textarea {
-  padding: 12px 16px;
-  border: 2px solid #77a0ed;
+input,
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #333;
 }
 
-.input:focus,
-.textarea:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(119, 160, 237, 0.2);
-}
-
-.textarea {
+textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 60px;
+}
+
+.optionalField {
+  display: flex;
+  gap: 10px;
+}
+
+.optionalField input {
+  flex: 1;
 }
 
 .submitButton {
-  background-color: #77a0ed;
+  background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 20px;
-  padding: 16px 32px;
-  font-size: 1.1rem;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
   margin-top: 20px;
 }
 
 .submitButton:hover {
-  background-color: #007bff;
+  background-color: #0056b3;
 }
 
 .backLink {
   position: absolute;
-  top: 30px;
-  left: 30px;
-  font-size: 1.7rem;
-  color: #77a0ed;
+  top: 20px;
+  left: 20px;
+  color: #007bff;
   text-decoration: none;
-  font-weight: 500;
-  z-index: 10;
+  font-size: 1rem;
 }
-
 .backLink:hover {
-  text-decoration: none;
-  opacity: 0.8;
+  text-decoration: underline;
 }
