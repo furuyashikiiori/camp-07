@@ -2,15 +2,21 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/skip2/go-qrcode"
 )
 
 type App struct {
 	DB *sql.DB
+}
+
+type URLRequest struct {
+	URL string `json:"url" binding:"required"`
 }
 
 func main() {
@@ -44,6 +50,30 @@ func main() {
 	
 	// API エンドポイント
 	r.GET("/api/health", app.healthCheck)
+
+	r.POST("/api/generate-qr", func(c *gin.Context) {
+		var req URLRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストボディの形式が正しくありません"})
+			return
+		}
+		
+		// QRコード生成
+		qr, err := qrcode.Encode(req.URL, qrcode.Medium, 256)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "QRコードの生成に失敗しました"})
+			return
+		}
+		
+		// Base64エンコード
+		base64Encoding := base64.StdEncoding.EncodeToString(qr)
+		dataURI := "data:image/png;base64," + base64Encoding
+		
+		c.JSON(http.StatusOK, gin.H{
+			"qr_data": dataURI,
+			"url": req.URL,
+		})
+	})
 	
 	port := os.Getenv("PORT")
 	if port == "" {
