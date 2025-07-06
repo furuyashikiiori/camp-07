@@ -12,7 +12,7 @@ export default function qrPage() {
         <QRGenerator />
         <p>このQRコードをスキャンして、特定の情報にアクセスできます。</p>
         <p>
-          今はリンク入れて生成だけど、あとでユーザーID取得してマイページのリンクを自動で入力されるように変える
+          localhost:3000/mypagenoのURLをQRコードにして表示してる状態
         </p>
       </main>
       <Footer />

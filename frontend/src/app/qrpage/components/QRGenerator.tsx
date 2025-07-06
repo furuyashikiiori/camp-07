@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import styles from "./QRGenerator.module.css";
 
@@ -9,10 +9,28 @@ const QRGenerator: React.FC = () => {
   const [qrData, setQrData] = useState("");
   const qrRef = useRef<HTMLImageElement>(null);
 
+  // コンポーネントマウント時にマイページのQRコードを自動生成
+  useEffect(() => {
+    const generateInitialQR = async () => {
+      try {
+        const urlWithTimestamp = `http://localhost:3000/mypage?t=${Date.now()}`;
+        const response = await axios.post("http://localhost:8080/api/generate-qr", {
+          url: urlWithTimestamp,
+        });
+        setQrData(response.data.qr_data);
+        setUrl("http://localhost:3000/mypage");
+      } catch (error) {
+        console.error("Error generating initial QR code:", error);
+      }
+    };
+
+    generateInitialQR();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const urlWithTimestamp = `${url}?t=${Date.now()}`;
+      const urlWithTimestamp = `http://localhost:3000/mypage?t=${Date.now()}`;
       const response = await axios.post("http://localhost:8080/api/generate-qr", {
         url: urlWithTimestamp,
       });
@@ -48,7 +66,7 @@ const QRGenerator: React.FC = () => {
   return (
     <div className={styles.qrGenerator}>
       <h1>QRコードの作成</h1>
-      <form onSubmit={handleSubmit} className={styles.qrForm}>
+      {/* <form onSubmit={handleSubmit} className={styles.qrForm}>
         <input
           type='url'
           value={url}
@@ -60,7 +78,7 @@ const QRGenerator: React.FC = () => {
         <button type='submit' className={styles.qrButton}>
           生成
         </button>
-      </form>
+      </form> */}
       {qrData && (
         <div className={styles.qrResult}>
           <img
