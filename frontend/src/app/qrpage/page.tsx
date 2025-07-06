@@ -11,6 +11,9 @@ export default function qrPage() {
         <h1 className={styles.title}>QRコードページ</h1>
         <QRGenerator />
         <p>このQRコードをスキャンして、特定の情報にアクセスできます。</p>
+        <p>
+          今はリンク入れて生成だけど、あとでユーザーID取得してマイページのリンクを自動で入力されるように変える
+        </p>
       </main>
       <Footer />
     </div>
