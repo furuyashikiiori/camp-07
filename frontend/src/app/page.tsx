@@ -13,20 +13,11 @@ export default function HomePage() {
   const [showButtons, setShowButtons] = useState(false);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.currentTime = 0;
-      video.play().catch((e) => {
-        console.error('再生に失敗しました:', e);
-      });
+    const timeout = setTimeout(() => {
+      setShowButtons(true);
+    }, 5000);
 
-      // 5秒後にボタン表示を開始
-      const timeout = setTimeout(() => {
-        setShowButtons(true);
-      }, 5000);
-
-      return () => clearTimeout(timeout);
-    }
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
