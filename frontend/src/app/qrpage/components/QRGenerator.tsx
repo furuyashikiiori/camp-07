@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import Image from "next/image";
 import styles from "./QRGenerator.module.css";
 
 const QRGenerator: React.FC = () => {
@@ -27,18 +28,6 @@ const QRGenerator: React.FC = () => {
     generateInitialQR();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const urlWithTimestamp = `http://localhost:3000/mypage?t=${Date.now()}`;
-      const response = await axios.post("http://localhost:8080/api/generate-qr", {
-        url: urlWithTimestamp,
-      });
-      setQrData(response.data.qr_data);
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-    }
-  };
 
   const handleReload = async () => {
     if (url) {
@@ -81,11 +70,14 @@ const QRGenerator: React.FC = () => {
       </form> */}
       {qrData && (
         <div className={styles.qrResult}>
-          <img
+          <Image
             ref={qrRef}
             src={qrData}
             alt='QR Code'
             className={styles.qrImage}
+            width={256}
+            height={256}
+            unoptimized
           />
           <div className={styles.qrActions}>
             <button onClick={handleReload} className={styles.qrActionButton}>
