@@ -14,8 +14,8 @@ type App struct {
 }
 
 type SignUpRequest struct {
-	Email    string `json:"email" binding:"required"`
 	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -36,7 +36,7 @@ func (app *App) SignUp(c *gin.Context) {
 	var id int
 	err = app.DB.QueryRowContext(
 		context.Background(),
-		"INSERT INTO users (email, name, password) VALUES ($1, $2, $3) RETURNING id",
+		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
 		req.Email, req.Name, string(hashedPassword),
 	).Scan(&id)
 
@@ -48,8 +48,8 @@ func (app *App) SignUp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"user": gin.H{
 			"id":    id,
-			"email": req.Email,
 			"name":  req.Name,
+			"email": req.Email,
 		},
 	})
 }

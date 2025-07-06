@@ -22,15 +22,15 @@ func (app *App) SignIn(c *gin.Context) {
 
 	var (
 		id             int
-		email, name    string
+		name, email    string
 		hashedPassword string
 	)
 
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		"SELECT id, email, name, password FROM users WHERE email = $1",
+		"SELECT id, name, email, password FROM users WHERE email = $1",
 		req.Email,
-	).Scan(&id, &email, &name, &hashedPassword)
+	).Scan(&id, &name, &email, &hashedPassword)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
@@ -45,8 +45,8 @@ func (app *App) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"user": gin.H{
 			"id":    id,
-			"email": email,
 			"name":  name,
+			"email": email,
 		},
 	})
 }
