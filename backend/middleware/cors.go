@@ -12,6 +12,8 @@ func CORSMiddleware() gin.HandlerFunc {
 		allowedOrigins := []string{
       "http://localhost:3000",
       "https://qrsona.vercel.app",
+      "https://qrsona-git-dev-furuyashikiiori.vercel.app",
+      "https://camp-07-dev.vercel.app",
   }
 
   origin := c.Request.Header.Get("Origin")
