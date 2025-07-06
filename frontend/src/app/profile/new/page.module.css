@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-image: url('/bg-profile-new-pc.jpg');
+  background-image: url('/backpicPC.png');
   background-size: cover;
   background-position: center;
   display: flex;
@@ -11,12 +11,12 @@
 
 @media (max-width: 768px) {
   .container {
-    background-image: url('/bg-profile-new-mobile.jpg');
+    background-image: url('/bsackpicMobile.png');
   }
 }
 
 .overlay {
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.4);
   padding: 40px;
   border-radius: 16px;
   max-width: 600px;
@@ -26,7 +26,7 @@
 
 .title {
   text-align: center;
-  color: #007bff;
+  color: #77a0ed;
   margin-bottom: 24px;
 }
 
@@ -40,18 +40,20 @@
   display: flex;
   flex-direction: column;
   font-weight: bold;
-  color: #007bff;
+  color: #77a0ed;
 }
 
-input,
-textarea {
+.form input,
+.form textarea {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 1rem;
+  color: #77a0ed;
+  background-color: rgba(191, 225, 250, 0.7);
 }
 
-textarea {
+.form textarea {
   resize: vertical;
   min-height: 60px;
 }
@@ -66,7 +68,7 @@ textarea {
 }
 
 .submitButton {
-  background-color: #007bff;
+  background-color: #77a0ed;
   color: white;
   border: none;
   padding: 14px;
@@ -80,14 +82,29 @@ textarea {
   background-color: #0056b3;
 }
 
+.message {
+  color: #77a0ed;
+  text-align: center;
+}
+
+.form h3 {
+  color: #77a0ed;
+  margin: 20px 0 10px 0;
+  font-size: 1.2rem;
+}
+
 .backLink {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  color: #007bff;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
   text-decoration: none;
-  font-size: 1rem;
+  font-weight: 500;
+  z-index: 10;
 }
+
 .backLink:hover {
-  text-decoration: underline;
+  text-decoration: none;
+  opacity: 0.8; 
 }

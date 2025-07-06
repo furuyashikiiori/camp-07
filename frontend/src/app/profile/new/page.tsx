@@ -46,8 +46,8 @@ export default function NewProfilePage() {
 
   return (
     <div className={styles.container}>
-      <Link href="/" className={styles.backLink}>
-        &lt; Back StartPage
+      <Link href="/mypage" className={styles.backLink}>
+        &lt; MyProfile Page
       </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>プロフィール新規作成</h1>
@@ -87,7 +87,7 @@ export default function NewProfilePage() {
             <input type="url" name="sns" value={formData.sns} onChange={handleChange} />
           </label>
 
-          <h3>任意の項目（最大3つ）</h3>
+          <h3>任意の項目</h3>
           {formData.optionalFields.map((field, index) => (
             <div key={index} className={styles.optionalField}>
               <input
