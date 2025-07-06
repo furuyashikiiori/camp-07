@@ -1,27 +1,61 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import styles from "./page.module.css";
+'use client';
 
-export default function MyPage() {
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import styles from './page.module.css';
+
+type Profile = {
+  id: number;
+  name: string;
+  description: string;
+};
+
+export default function ProfilePage() {
+  const router = useRouter();
+
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+
+  useEffect(() => {
+    const dummyProfiles: Profile[] = [
+      {
+        id: 1,
+        name: 'ビジネス用',
+        description: '仕事用のプロフィールです。',
+      },
+      {
+        id: 2,
+        name: '趣味用',
+        description: '趣味・SNS用プロフィールです。',
+      },
+    ];
+    setProfiles(dummyProfiles);
+  }, []);
+
   return (
     <div className={styles.container}>
-      <Header />
-      <main className={styles.main}>
-        <h1 className={styles.title}>マイページ</h1>
-        <div className={styles.profileSection}>
-          <div className={styles.profileImage}>!?</div>
-          <div className={styles.profileInfo}>
-            <h3>ユーザープロフィール</h3>
-            <p>
-              <strong>名前:</strong> hoge
-            </p>
-            <p>
-              <strong>メール:</strong> hoge
-            </p>
-          </div>
+      <div className={styles.overlay}>
+        <h1 className={styles.title}>MyProfile Page</h1>
+
+        <button
+          className={styles.newProfileButton}
+          onClick={() => router.push('/profile/new')}
+        >
+          NewProfile ＋
+        </button>
+
+        <div className={styles.profileList}>
+          {profiles.length === 0 ? (
+            <p className={styles.message}>プロフィールがまだありません。</p>
+          ) : (
+            profiles.map((profile) => (
+              <div key={profile.id} className={styles.profileCard}>
+                <h2 className={styles.cardTitle}>{profile.name}</h2>
+                <p className={styles.cardDescription}>{profile.description}</p>
+              </div>
+            ))
+          )}
         </div>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }
