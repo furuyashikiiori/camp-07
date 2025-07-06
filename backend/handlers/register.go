@@ -37,11 +37,11 @@ func (app *App) SignUp(c *gin.Context) {
 	err = app.DB.QueryRowContext(
 		context.Background(),
 		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
-		req.Email, req.Name, string(hashedPassword),
+		req.Name, req.Email, string(hashedPassword),
 	).Scan(&id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
