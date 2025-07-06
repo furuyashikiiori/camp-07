@@ -65,7 +65,7 @@ export default function HomePage() {
           >
             <button
               className={styles.circleButton}
-              onClick={() => router.push('/friends')}
+              onClick={() => router.push('/listpage')}
             >
               <FaListUl size={30} />
             </button>
