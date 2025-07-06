@@ -10,17 +10,17 @@ import (
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allowedOrigins := []string{
-			"http://localhost:3000",
-			"https://qrsona.vercel.app",
-		}
-		
-		origin := c.Request.Header.Get("Origin")
-		for _, allowedOrigin := range allowedOrigins {
-			if origin == allowedOrigin {
-				c.Header("Access-Control-Allow-Origin", origin)
-				break
-			}
-		}
+      "http://localhost:3000",
+      "https://qrsona.vercel.app",
+  }
+
+  origin := c.Request.Header.Get("Origin")
+  for _, allowedOrigin := range allowedOrigins {
+      if origin == allowedOrigin {
+          c.Header("Access-Control-Allow-Origin", origin)
+          break
+      }
+  }
 		
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
