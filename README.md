@@ -11,11 +11,11 @@
 
 - Go 1.21+
 - Gin (Webフレームワーク)
-- SQLite3
+- PostgreSQL (Supabase)
 
 ### データベース
 
-- SQLite3
+- Supabase (PostgreSQL)
 
 ## セットアップ
 
@@ -23,7 +23,7 @@
 
 - Node.js (v18 以上)
 - Go (v1.21 以上)
-- SQLite3
+- Supabase アカウント
 
 ### インストール
 
@@ -47,12 +47,15 @@ cd ../backend
 go mod download
 ```
 
-4. データベースの初期化
+4. 環境変数の設定
 
 ```bash
-cd ../database
-sqlite3 app.db < schema.sql
+cd ../backend
+cp .env.example .env
+# .envファイルでDATABASE_URLを設定
 ```
+
+注意: Supabaseの接続情報が必要です
 
 ## 実行
 
@@ -78,8 +81,10 @@ go run main.go
 ## API エンドポイント
 
 - `GET /api/health` - ヘルスチェック
+- `POST /api/generate-qr` - QRコード生成
 
 ## データベース
 
-SQLite3 データベースは `database/app.db` に配置されます。
-スキーマは `database/schema.sql` で管理されています。
+Supabase (PostgreSQL) を使用しています。
+- 接続設定は `.env` ファイルの `DATABASE_URL` で管理
+- スキーマは `database/schema.sql` で管理されています（参考用）
