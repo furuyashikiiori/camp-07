@@ -2,7 +2,6 @@ services:
   - type: web
     name: qrsona-backend
     runtime: go
-    env: go
     buildCommand: cd backend && go build -o main .
     startCommand: cd backend && ./main
     plan: free

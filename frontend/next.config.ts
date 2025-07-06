@@ -7,8 +7,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL ||
-      "https://あなたのRenderバックエンドURL",
+      process.env.NEXT_PUBLIC_API_URL || "https://qrsona-backend.onrender.com",
   },
   async rewrites() {
     return [
@@ -17,7 +16,7 @@ const nextConfig: NextConfig = {
         destination:
           process.env.NODE_ENV === "development"
             ? "http://localhost:8080/api/:path*"
-            : "https://あなたのRenderバックエンドURL/api/:path*",
+            : "https://https://qrsona-backend.onrender.comapi/:path*",
       },
     ];
   },

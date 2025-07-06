@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://あなたのRenderバックエンドURL/api/:path*"
+      "destination": "https://qrsona-backend.onrender.com/api/:path*"
     }
   ]
 }
