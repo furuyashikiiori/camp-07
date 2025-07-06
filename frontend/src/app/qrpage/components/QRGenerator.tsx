@@ -14,11 +14,11 @@ const QRGenerator: React.FC = () => {
   useEffect(() => {
     const generateInitialQR = async () => {
       try {
-        const baseUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://qrsona.vercel.app' 
+        const baseUrl = process.env.NODE_ENV === 'production'
+          ? 'https://qrsona.vercel.app'
           : 'http://localhost:3000';
         const urlWithTimestamp = `${baseUrl}/mypage?t=${Date.now()}`;
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-qr`, {
+        const response = await axios.post(`/api/generate-qr`, {
           url: urlWithTimestamp,
         });
         setQrData(response.data.qr_data);
@@ -36,7 +36,7 @@ const QRGenerator: React.FC = () => {
     if (url) {
       try {
         const urlWithTimestamp = `${url}?t=${Date.now()}`;
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-qr`, {
+        const response = await axios.post(`/api/generate-qr`, {
           url: urlWithTimestamp,
         });
         setQrData(response.data.qr_data);
