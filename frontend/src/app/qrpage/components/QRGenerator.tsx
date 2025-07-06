@@ -14,12 +14,15 @@ const QRGenerator: React.FC = () => {
   useEffect(() => {
     const generateInitialQR = async () => {
       try {
-        const urlWithTimestamp = `http://localhost:3000/mypage?t=${Date.now()}`;
-        const response = await axios.post("http://localhost:8080/api/generate-qr", {
+        const baseUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://qrsona.onrender.com' 
+          : 'http://localhost:3000';
+        const urlWithTimestamp = `${baseUrl}/mypage?t=${Date.now()}`;
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-qr`, {
           url: urlWithTimestamp,
         });
         setQrData(response.data.qr_data);
-        setUrl("http://localhost:3000/mypage");
+        setUrl(`${baseUrl}/mypage`);
       } catch (error) {
         console.error("Error generating initial QR code:", error);
       }
@@ -33,7 +36,7 @@ const QRGenerator: React.FC = () => {
     if (url) {
       try {
         const urlWithTimestamp = `${url}?t=${Date.now()}`;
-        const response = await axios.post("http://localhost:8080/api/generate-qr", {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/generate-qr`, {
           url: urlWithTimestamp,
         });
         setQrData(response.data.qr_data);
