@@ -12,6 +12,9 @@ export default function Header() {
           <Link href='/mypage' className={styles.navLink}>
             マイページ
           </Link>
+          <Link href='/qrpage' className={styles.navLink}>
+            QRコード
+          </Link>
         </div>
       </nav>
     </header>
