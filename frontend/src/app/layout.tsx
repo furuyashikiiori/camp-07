@@ -16,7 +16,12 @@ export const metadata: Metadata = {
   title: "QRsona",
   description: "QRコードでつながる新しいソーシャルプラットフォーム",
   icons: {
-    icon: "/QRsona.ico",
+    icon: [
+      { url: "/QRsona.ico", sizes: "any", type: "image/x-icon" },
+      { url: "/QRsona.ico", sizes: "16x16", type: "image/x-icon" },
+      { url: "/QRsona.ico", sizes: "32x32", type: "image/x-icon" },
+    ],
+    shortcut: "/QRsona.ico",
   },
 };
 
