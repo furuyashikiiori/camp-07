@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,10 @@ func (app *App) CreateProfile(c *gin.Context) {
 	// リクエストのJSONをバインド
 	if err := c.ShouldBindJSON(&req); err != nil {
 		fmt.Printf("JSON binding error: %v\n", err)
+		if strings.Contains(err.Error(), "title") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Title field is required"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid request format: %v", err)})
 		return
 	}
@@ -102,26 +107,58 @@ func (app *App) CreateProfile(c *gin.Context) {
 		iconURL = fmt.Sprintf("/api/profiles/%d/icon", req.UserID)
 	}
 
+	// 誕生日の処理
+	var birthdate *time.Time
+	if req.Birthdate != "" {
+		parsedDate, err := time.Parse("2006-01-02", req.Birthdate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid birthdate format. Use YYYY-MM-DD"})
+			return
+		}
+		birthdate = &parsedDate
+	}
+
 	// プロフィール情報をDBに保存
 	var profileID int
+	query := `INSERT INTO profiles (
+        user_id, display_name, icon_path, aka, hometown, 
+        birthdate, hobby, comment, title, description
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
+    RETURNING id`
+
 	err = app.DB.QueryRowContext(
 		context.Background(),
-		`INSERT INTO profiles (user_id, display_name, icon_path) 
-         VALUES ($1, $2, $3) RETURNING id`,
-		req.UserID, req.DisplayName, iconPath,
+		query,
+		req.UserID, req.DisplayName, iconPath, req.AKA, req.Hometown,
+		birthdate, req.Hobby, req.Comment, req.Title, req.Description,
 	).Scan(&profileID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create profile"})
+		fmt.Printf("Database error creating profile: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create profile", "details": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.Profile{
+	// 作成したプロフィールを返す
+	profile := models.Profile{
 		ID:          profileID,
 		UserID:      req.UserID,
 		DisplayName: req.DisplayName,
 		IconURL:     iconURL,
-	})
+		AKA:         req.AKA,
+		Hometown:    req.Hometown,
+		Hobby:       req.Hobby,
+		Comment:     req.Comment,
+		Title:       req.Title,
+		Description: req.Description,
+	}
+
+	// 誕生日がある場合は設定
+	if birthdate != nil {
+		profile.Birthdate = *birthdate
+	}
+
+	c.JSON(http.StatusCreated, profile)
 }
 
 // UpdateProfile はプロフィール情報を更新するハンドラーです
@@ -162,10 +199,59 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	params := []interface{}{}
 	paramCount := 0
 
+	// 各フィールドの更新処理
 	if req.DisplayName != "" {
 		paramCount++
 		query += fmt.Sprintf("display_name = $%d, ", paramCount)
 		params = append(params, req.DisplayName)
+	}
+
+	// 新しいフィールドの更新処理
+	if req.AKA != "" {
+		paramCount++
+		query += fmt.Sprintf("aka = $%d, ", paramCount)
+		params = append(params, req.AKA)
+	}
+
+	if req.Hometown != "" {
+		paramCount++
+		query += fmt.Sprintf("hometown = $%d, ", paramCount)
+		params = append(params, req.Hometown)
+	}
+
+	if req.Birthdate != "" {
+		birthdate, err := time.Parse("2006-01-02", req.Birthdate)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid birthdate format. Use YYYY-MM-DD"})
+			return
+		}
+		paramCount++
+		query += fmt.Sprintf("birthdate = $%d, ", paramCount)
+		params = append(params, birthdate)
+	}
+
+	if req.Hobby != "" {
+		paramCount++
+		query += fmt.Sprintf("hobby = $%d, ", paramCount)
+		params = append(params, req.Hobby)
+	}
+
+	if req.Comment != "" {
+		paramCount++
+		query += fmt.Sprintf("comment = $%d, ", paramCount)
+		params = append(params, req.Comment)
+	}
+
+	if req.Title != "" {
+		paramCount++
+		query += fmt.Sprintf("title = $%d, ", paramCount)
+		params = append(params, req.Title)
+	}
+
+	if req.Description != "" {
+		paramCount++
+		query += fmt.Sprintf("description = $%d, ", paramCount)
+		params = append(params, req.Description)
 	}
 
 	var newIconPath string
@@ -240,9 +326,15 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	var profile models.Profile
 	err = app.DB.QueryRowContext(
 		ctx,
-		"SELECT id, user_id, display_name FROM profiles WHERE id = $1",
+		`SELECT id, user_id, display_name, aka, hometown, birthdate, 
+        hobby, comment, title, description 
+        FROM profiles WHERE id = $1`,
 		updatedID,
-	).Scan(&profile.ID, &profile.UserID, &profile.DisplayName)
+	).Scan(
+		&profile.ID, &profile.UserID, &profile.DisplayName,
+		&profile.AKA, &profile.Hometown, &profile.Birthdate,
+		&profile.Hobby, &profile.Comment, &profile.Title, &profile.Description,
+	)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated profile"})
@@ -251,6 +343,47 @@ func (app *App) UpdateProfile(c *gin.Context) {
 
 	// アイコンURLを設定
 	if newIconPath != "" || (currentIconPath.Valid && currentIconPath.String != "") {
+		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+	}
+
+	c.JSON(http.StatusOK, profile)
+}
+
+// GetProfile はプロフィール情報を取得するハンドラーです
+func (app *App) GetProfile(c *gin.Context) {
+	profileID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		return
+	}
+
+	var profile models.Profile
+	var iconPath sql.NullString
+
+	err = app.DB.QueryRowContext(
+		context.Background(),
+		`SELECT id, user_id, display_name, icon_path, aka, hometown, 
+        birthdate, hobby, comment, title, description 
+        FROM profiles WHERE id = $1`,
+		profileID,
+	).Scan(
+		&profile.ID, &profile.UserID, &profile.DisplayName, &iconPath,
+		&profile.AKA, &profile.Hometown, &profile.Birthdate,
+		&profile.Hobby, &profile.Comment, &profile.Title, &profile.Description,
+	)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// アイコンURLの設定
+	if iconPath.Valid && iconPath.String != "" {
 		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
 	}
 
