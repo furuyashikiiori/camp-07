@@ -18,10 +18,25 @@ const QRGenerator: React.FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const baseUrl =
-          process.env.NODE_ENV === "production"
-            ? "https://qrsona.vercel.app"
-            : "http://localhost:3000";
+        // 環境に応じたベースURLの決定
+        const getBaseUrl = () => {
+          if (process.env.NODE_ENV === "development") {
+            return "http://localhost:3000";
+          }
+          
+          // 本番環境での分岐
+          if (typeof window !== "undefined") {
+            const hostname = window.location.hostname;
+            if (hostname === "qrsona-dev.vercel.app") {
+              return "https://qrsona-dev.vercel.app";
+            }
+          }
+          
+          // デフォルトは本番環境
+          return "https://qrsona.vercel.app";
+        };
+        
+        const baseUrl = getBaseUrl();
         const urlWithTimestamp = `${baseUrl}/mypage?t=${Date.now()}`;
         const response = await axios.post(`/api/generate-qr`, {
           url: urlWithTimestamp,
