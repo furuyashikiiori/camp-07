@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
-import Link from 'next/link'
+import Link from 'next/link';
+import { getUser, User } from '../../utils/auth';
 
 type Profile = {
   id: number;
@@ -26,21 +27,29 @@ export default function ProfilePage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
+    // ログイン中のユーザー情報を取得
+    const user = getUser();
+    if (!user) {
+      // ログインしていない場合はログインページにリダイレクト
+      router.push('/login');
+      return;
+    }
+    setCurrentUser(user);
+
     const fetchProfiles = async () => {
       try {
-        const userId = 16; //ログイン機能を実装していないため、固定のユーザーIDを使用
-
-        const response = await fetch(`/api/users/${userId}/profiles`);
+        const response = await fetch(`http://localhost:8080/api/users/${user.id}/profiles`);
         if (!response.ok) {
           // バックエンドが起動していない場合のテストデータ
           console.warn('Backend not available, using test data');
           const testProfiles: Profile[] = [
             {
               id: 1,
-              user_id: 16,
-              display_name: 'Test User',
+              user_id: user.id,
+              display_name: user.name,
               title: 'ビジネス用プロフィール',
               description: 'ビジネス用のプロフィールです。',
               aka: 'エンジニア',
@@ -50,8 +59,8 @@ export default function ProfilePage() {
             },
             {
               id: 2,
-              user_id: 16,
-              display_name: 'Test User',
+              user_id: user.id,
+              display_name: user.name,
               title: '趣味用プロフィール',
               description: '趣味・SNS用のプロフィールです。',
               aka: '写真家',
@@ -76,7 +85,7 @@ export default function ProfilePage() {
     };
 
     fetchProfiles();
-  }, []);
+  }, [router]);
 
   return (
     <div className={styles.container}>
@@ -84,7 +93,9 @@ export default function ProfilePage() {
         &lt; Back StartPage
       </Link>
       <div className={styles.overlay}>
-        <h1 className={styles.title}>MyProfile Page</h1>
+        <h1 className={styles.title}>
+          {currentUser ? `${currentUser.name}のプロフィール` : 'MyProfile Page'}
+        </h1>
 
         <button
           className={styles.newProfileButton}
@@ -104,7 +115,7 @@ export default function ProfilePage() {
             profiles.map((profile) => (
               <div key={profile.id} className={styles.profileCard}>
                 <h2 className={styles.cardTitle}>{profile.title}</h2>
-                <p className={styles.cardDescription}>{profile.description || '説明なし'}</p>
+                <p className={styles.cardDescription}>{profile.description || 'プロフィールの説明がありません'}</p>
               </div>
             ))
           )}
