@@ -55,23 +55,6 @@ func (app *App) CreateProfile(c *gin.Context) {
 		return
 	}
 
-	// プロフィールが既に存在するかチェック
-	err = app.DB.QueryRowContext(
-		context.Background(),
-		"SELECT EXISTS(SELECT 1 FROM profiles WHERE user_id = $1)",
-		req.UserID,
-	).Scan(&exists)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
-
-	if exists {
-		c.JSON(http.StatusConflict, gin.H{"error": "Profile already exists for this user"})
-		return
-	}
-
 	var iconPath string
 	var iconURL string
 
@@ -443,4 +426,87 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 
 	// ユーザーのカスタムアイコンを送信
 	c.File(iconPath.String)
+}
+
+// GetProfilesByUserID はユーザーIDに基づいてプロフィール一覧を取得するハンドラーです
+func (app *App) GetProfilesByUserID(c *gin.Context) {
+	// URLからユーザーIDを取得
+	userID, err := strconv.Atoi(c.Param("userId"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// ユーザーの存在確認
+	var exists bool
+	err = app.DB.QueryRowContext(
+		context.Background(),
+		"SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
+		userID,
+	).Scan(&exists)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	// プロフィール一覧の取得
+	rows, err := app.DB.QueryContext(
+		context.Background(),
+		`SELECT id, user_id, display_name, icon_path, aka, hometown, 
+        birthdate, hobby, comment, title, description 
+        FROM profiles WHERE user_id = $1
+        ORDER BY id DESC`,
+		userID,
+	)
+	if err != nil {
+		fmt.Printf("Error querying profiles: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+	defer rows.Close()
+
+	profiles := []models.Profile{}
+	for rows.Next() {
+		var profile models.Profile
+		var iconPath sql.NullString
+		var birthdate sql.NullTime
+
+		err := rows.Scan(
+			&profile.ID, &profile.UserID, &profile.DisplayName, &iconPath,
+			&profile.AKA, &profile.Hometown, &birthdate,
+			&profile.Hobby, &profile.Comment, &profile.Title, &profile.Description,
+		)
+		if err != nil {
+			fmt.Printf("Error scanning profile row: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning database results"})
+			return
+		}
+
+		// Nullableフィールドの処理
+		if birthdate.Valid {
+			profile.Birthdate = birthdate.Time
+		}
+
+		// アイコンURLの設定
+		if iconPath.Valid && iconPath.String != "" {
+			profile.IconPath = iconPath.String
+			profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+		}
+
+		profiles = append(profiles, profile)
+	}
+
+	// レスポンスを返す
+	response := models.ProfileListResponse{
+		Profiles: profiles,
+		Count:    len(profiles),
+	}
+
+	c.JSON(http.StatusOK, response)
 }

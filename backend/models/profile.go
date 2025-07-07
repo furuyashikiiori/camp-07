@@ -46,3 +46,17 @@ type UpdateProfileRequest struct {
 	Title       string `json:"title,omitempty"` // タイトル
 	Description string `json:"description,omitempty"`
 }
+
+// ProfileListResponse はプロフィール一覧レスポンスを表します
+type ProfileListResponse struct {
+	Profiles []Profile `json:"profiles"`
+	Count    int       `json:"count"`
+}
+
+// ProfileListOptions はプロフィール一覧取得時のオプションを表します
+type ProfileListOptions struct {
+	UserID int    `form:"user_id"`
+	Sort   string `form:"sort"`   // 例: "created_at", "-created_at" (降順)
+	Limit  int    `form:"limit"`  // 取得件数
+	Offset int    `form:"offset"` // スキップする件数
+}
