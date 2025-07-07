@@ -1,26 +1,18 @@
 package handlers
 
 import (
+	"backend/models"
 	"context"
-	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type App struct {
-	DB *sql.DB
-}
-
-type SignUpRequest struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
+// SignUp はユーザー登録を行うハンドラーです
 func (app *App) SignUp(c *gin.Context) {
-	var req SignUpRequest
+	var req models.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
@@ -33,23 +25,28 @@ func (app *App) SignUp(c *gin.Context) {
 		return
 	}
 
+	// タイムアウト付きコンテキスト
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	var id int
 	err = app.DB.QueryRowContext(
-		context.Background(),
+		ctx,
 		"INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
-		req.Email, req.Name, string(hashedPassword),
+		req.Name, req.Email, string(hashedPassword),
 	).Scan(&id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	// 登録成功レスポンス
 	c.JSON(http.StatusOK, gin.H{
-		"user": gin.H{
-			"id":    id,
-			"name":  req.Name,
-			"email": req.Email,
+		"user": models.User{
+			ID:    id,
+			Name:  req.Name,
+			Email: req.Email,
 		},
 	})
 }

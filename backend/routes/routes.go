@@ -25,10 +25,25 @@ func SetupRoutes(r *gin.Engine) {
 		// QRコード生成
 		api.POST("/generate-qr", handlers.GenerateQRCode)
 
-		// 新規登録
+		// 認証関連
 		api.POST("/signup", app.SignUp)
-
-		// ログイン
 		api.POST("/signin", app.SignIn)
+
+		// ユーザー関連
+		api.GET("/users", app.GetUsers)
+
+		// プロフィール関連
+		profiles := api.Group("/profiles")
+		{
+			profiles.POST("", app.CreateProfile)          // プロフィール作成
+			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
+			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
+		}
+
+		// ユーザー関連
+		users := api.Group("/users")
+		{
+			users.GET("/:userId/profiles", app.GetProfilesByUserID) // ユーザーのプロフィール一覧取得
+		}
 	}
 }
