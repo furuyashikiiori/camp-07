@@ -12,24 +12,45 @@ export default function NewProfilePage() {
     birthday: '',
     birthplace: '',
     hobby: '',
-    sns: '',
+    sns: {
+      twitter: '',
+      instagram: '',
+      github: '',
+    },
     optionalFields: [
-      { label: '', value: '' },
-      { label: '', value: '' },
       { label: '', value: '' },
     ],
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index?: number, fieldType?: 'label' | 'value') => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    index?: number,
+    fieldType?: 'label' | 'value'
+  ) => {
     const { name, value } = e.target;
 
     if (index !== undefined && fieldType) {
       const updated = [...formData.optionalFields];
       updated[index][fieldType] = value;
       setFormData({ ...formData, optionalFields: updated });
+    } else if (name in formData.sns) {
+      setFormData({
+        ...formData,
+        sns: {
+          ...formData.sns,
+          [name]: value,
+        },
+      });
     } else {
       setFormData({ ...formData, [name]: value });
     }
+  };
+
+  const addOptionalField = () => {
+    setFormData({
+      ...formData,
+      optionalFields: [...formData.optionalFields, { label: '', value: '' }],
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,7 +62,7 @@ export default function NewProfilePage() {
     }
 
     console.log('送信内容:', formData);
-    alert('送信しました（仮）');
+    alert('プロフィールを登録しました（仮）');
   };
 
   return (
@@ -82,10 +103,39 @@ export default function NewProfilePage() {
             <input type="text" name="hobby" value={formData.hobby} onChange={handleChange} />
           </label>
 
-          <label>
-            SNSリンク：
-            <input type="url" name="sns" value={formData.sns} onChange={handleChange} />
-          </label>
+          <fieldset className={styles.snsSection}>
+            <h3>SNSリンク</h3>
+
+            <label>
+              Twitter:
+              <input
+                type="url"
+                name="twitter"
+                value={formData.sns.twitter}
+                onChange={handleChange}
+              />
+            </label>
+
+            <label>
+              Instagram:
+              <input
+                type="url"
+                name="instagram"
+                value={formData.sns.instagram}
+                onChange={handleChange}
+              />
+            </label>
+
+            <label>
+              GitHub:
+              <input
+                type="url"
+                name="github"
+                value={formData.sns.github}
+                onChange={handleChange}
+              />
+            </label>
+          </fieldset>
 
           <h3>任意の項目</h3>
           {formData.optionalFields.map((field, index) => (
@@ -104,6 +154,14 @@ export default function NewProfilePage() {
               />
             </div>
           ))}
+
+          <button
+            type="button"
+            onClick={addOptionalField}
+            className={styles.addOptionalButton}
+          >
+            任意項目を追加 + 
+          </button>
 
           <button type="submit" className={styles.submitButton}>
             登録する
