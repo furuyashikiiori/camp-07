@@ -25,8 +25,9 @@ export default function ListPage() {
     const dummyContacts: Contact[] = [
       { id: 1, name: '青メッシュ', exchangeDate: '2025-06-30' },
       { id: 2, name: 'Ori',       exchangeDate: '2025-06-30' },
-      { id: 3, name: 'みっくん',   exchangeDate: '2025-06-11' },
+      { id: 3, name: 'あべゆ',   exchangeDate: '2025-06-11' },
       { id: 4, name: 'たちょ',     exchangeDate: '2025-05-09' },
+      { id: 5, name: 'みっくん',     exchangeDate: '2025-05-09' },
     ];
     setContacts(dummyContacts);
   }, []);
