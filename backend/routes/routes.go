@@ -8,31 +8,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRoutes ルート設定
+// ルート設定
 func SetupRoutes(r *gin.Engine) {
-	// CORS 等のミドルウェア
+	// ミドルウェア設定
 	r.Use(middleware.CORSMiddleware())
 
-	// DB コネクションを持った App を生成
+	// DBコネクションを持ったApp構造体を用意
 	app := &handlers.App{DB: database.DB}
 
-	// /api 以下のグループ
+	// APIルートグループ
 	api := r.Group("/api")
 	{
+		// ヘルスチェック
 		api.GET("/health", handlers.HealthCheck)
+
+		// QRコード生成
 		api.POST("/generate-qr", handlers.GenerateQRCode)
 
-		// 認証
+		// 認証関連
 		api.POST("/signup", app.SignUp)
 		api.POST("/signin", app.SignIn)
 
-		// プロフィール作成
-		// JSON ボディで user_id, display_name, icon_base64(optional) を受け取り
-		api.POST("/profiles", app.CreateProfile)
-
-		// アイコン画像取得
-		// バイナリを直接返します
-		api.GET("/profiles/:id/icon", app.GetProfileIcon)
-		api.PUT("/profiles/:id", app.UpdateProfile) // プロフィール更新
+		// プロフィール関連
+		profiles := api.Group("/profiles")
+		{
+			profiles.POST("", app.CreateProfile)          // プロフィール作成
+			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
+			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
+		}
 	}
 }
