@@ -36,5 +36,11 @@ func SetupRoutes(r *gin.Engine) {
 			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
 			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
 		}
+
+		// ユーザー関連
+		users := api.Group("/users")
+		{
+			users.GET("/:userId/profiles", app.GetProfilesByUserID) // ユーザーのプロフィール一覧取得
+		}
 	}
 }
