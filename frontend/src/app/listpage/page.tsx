@@ -19,9 +19,9 @@ export default function ListPage() {
   const [openYear, setOpenYear] = useState<Record<string, boolean>>({});
   const [openDate, setOpenDate] = useState<Record<string, boolean>>({});
 
-  /* ===== ダミーを使う場合はコメント解除 ===== */
+  /* ===== ここの部分はダミーデータ表示です ===== */
   useEffect(() => {
-    
+
     const dummyContacts: Contact[] = [
       { id: 1, name: '青メッシュ', exchangeDate: '2025-06-30' },
       { id: 2, name: 'Ori',       exchangeDate: '2025-06-30' },
@@ -29,9 +29,9 @@ export default function ListPage() {
       { id: 4, name: 'たちょ',     exchangeDate: '2025-05-09' },
     ];
     setContacts(dummyContacts);
-    
   }, []);
-  /* ======================================== */
+  
+  /* =====ここの部分はダミーデータ表示です====== */
 
   /* 年 → 日付 → Contact[] にまとめる */
   const grouped = contacts.reduce<Record<string, Record<string, Contact[]>>>(
