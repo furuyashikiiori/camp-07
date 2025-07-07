@@ -1,0 +1,69 @@
+.container {
+  min-height: 100vh;
+  background-image: url('/backpicPC.png');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+@media (max-width: 768px) {
+  .container {
+    background-image: url('/backpicMobile.png');
+  }
+}
+
+.overlay {
+  background-color: rgba(255, 255, 255, 0.4);
+  padding: 60px 50px;
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  color: #77a0ed;
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.text {
+  color: #0056b3;
+  margin-bottom: 32px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.btn,
+.btnOutline {
+  display: block;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btn {
+  background-color: #77a0ed;
+  color: #fff;
+}
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.btnOutline {
+  background-color: transparent;
+  color: #77a0ed;
+  border: 2px solid #77a0ed;
+}
+.btnOutline:hover {
+  background-color: rgba(119, 160, 237, 0.1);
+}
