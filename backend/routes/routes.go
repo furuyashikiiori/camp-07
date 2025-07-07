@@ -38,14 +38,13 @@ func SetupRoutes(r *gin.Engine) {
 			links.PUT("/:id", app.UpdateLink)                  // リンク更新
 			links.DELETE("/:id", app.DeleteLink)               // リンク削除
 			links.GET("/types/common", app.GetCommonLinkTypes) // リンクテンプレ
-
-			// プロフィール関連
-			profiles := api.Group("/profiles")
-			{
-				profiles.POST("", app.CreateProfile)          // プロフィール作成
-				profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
-				profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
-			}
+		}
+		// プロフィール関連
+		profiles := api.Group("/profiles")
+		{
+			profiles.POST("", app.CreateProfile)          // プロフィール作成
+			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
+			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
 		}
 	}
 }
