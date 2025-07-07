@@ -30,5 +30,16 @@ func SetupRoutes(r *gin.Engine) {
 
 		// ログイン
 		api.POST("/signin", app.SignIn)
+
+		// リンク系API
+		links := api.Group("/links")
+		{
+			links.POST("", app.CreateLink)                     // リンク作成
+			links.GET("/user/:user_id", app.GetLinksByUser)    // ユーザー別リンク一覧
+			links.GET("/:id", app.GetLink)                     // リンク詳細
+			links.PUT("/:id", app.UpdateLink)                  // リンク更新
+			links.DELETE("/:id", app.DeleteLink)               // リンク削除
+			links.GET("/types/common", app.GetCommonLinkTypes) // 共通リンクタイプ
+		}
 	}
 }
