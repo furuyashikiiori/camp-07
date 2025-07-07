@@ -59,5 +59,16 @@ func SetupRoutes(r *gin.Engine) {
 		{
 			users.GET("/:userId/profiles", app.GetProfilesByUserID) // ユーザーのプロフィール一覧取得
 		}
+
+		// コネクション関連
+		connections := api.Group("/connections")
+		{
+			connections.POST("", app.CreateConnection)            // コネクション申請
+			connections.GET("/mutual", app.IsMutualConnectionAPI) // 相互コネクションチェック
+			connections.GET("", app.GetConnections)               // コネクション一覧取得
+			connections.PUT("/:id", app.UpdateConnection)         // コネクションの承認
+			connections.DELETE("/:id", app.DeleteConnection)      // コネクションの削除
+			connections.GET("/:id", app.GetConnection)            // コネクション詳細取得
+		}
 	}
 }
