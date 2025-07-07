@@ -38,11 +38,11 @@ export default function LoginPage() {
   return (
     <div className={styles.container}>
       <Link href="/auth" className={styles.backLink}>
-        &lt; 戻る
+        &lt; Back Page
       </Link>
 
       <div className={styles.overlay}>
-        <h1 className={styles.title}>ログイン</h1>
+        <h1 className={styles.title}>LoginPage</h1>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <label>
@@ -70,7 +70,7 @@ export default function LoginPage() {
           {error && <p className={styles.error}>{error}</p>}
 
           <button type="submit" className={styles.submitButton}>
-            ログイン
+            Login
           </button>
         </form>
       </div>
