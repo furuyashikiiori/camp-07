@@ -21,13 +21,13 @@ feature/* → dev → main
    - **Start Command**: `./main`
 3. 環境変数:
    - `PORT`: `10000`
-   - `DATABASE_URL`: Supabase 接続文字列（開発用 DB 推奨）
+   - `DATABASE_URL`: Supabase 接続文字列
    - `GIN_MODE`: `debug`
 
 ### Vercel (フロントエンド開発環境)
 
 1. Vercel は自動的に `dev` ブランチのプレビューを作成
-2. プレビュー URL 例: `https://qrsona-git-dev-[username].vercel.app`
+2. プレビュー URL 例: `https://qrsona-dev.vercel.app`
 3. 環境変数（必要に応じて）:
    - `NEXT_PUBLIC_API_URL`: `https://qrsona-backend-dev.onrender.com`
 
@@ -41,7 +41,7 @@ feature/* → dev → main
 ## 🌐 環境 URL
 
 - **本番**: `https://qrsona.vercel.app/`
-- **開発**: `https://qrsona-git-dev-[username].vercel.app/`
+- **開発**: `https://qrsona-dev.vercel.app/`
 - **API 本番**: `https://qrsona-backend.onrender.com/`
 - **API 開発**: `https://qrsona-backend-dev.onrender.com/`
 
