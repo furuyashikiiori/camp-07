@@ -5,7 +5,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import styles from './page.module.css';
+// import styles from './page.module.css';
 
 type DummyProfile = {
   id: number;
