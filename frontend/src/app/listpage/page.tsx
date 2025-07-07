@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import styles from './list.module.css';
+import styles from './page.module.css';
 
 type Contact = {
   id: number;
@@ -30,7 +30,7 @@ export default function ListPage() {
     ];
     setContacts(dummyContacts);
   }, []);
-  
+
   /* =====ここの部分はダミーデータ表示です====== */
 
   /* 年 → 日付 → Contact[] にまとめる */
