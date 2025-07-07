@@ -3,9 +3,12 @@
   background-image: url('/backpicPC.png');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
+  position: relative;
 }
 
 @media (max-width: 768px) {
