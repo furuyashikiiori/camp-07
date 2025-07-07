@@ -27,11 +27,11 @@ func (app *App) CreateLink(c *gin.Context) {
 		return
 	}
 
-	// JWTのユーザーIDを使用（リクエストのusers_idは不要に）
+	// JWTのユーザーIDを使用（リクエストのuser_idは不要に）
 	var linkID int
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`INSERT INTO link (users_id, image_url, title, description, url, created_at, updated_at) 
+		`INSERT INTO link (user_id, image_url, title, description, url, created_at, updated_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
 		userID, req.ImageURL, req.Title, req.Description, req.URL,
 		time.Now(), time.Now(),
@@ -66,9 +66,9 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 
 	rows, err := app.DB.QueryContext(
 		context.Background(),
-		`SELECT id, users_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
          FROM link 
-         WHERE users_id = $1 
+         WHERE user_id = $1 
          ORDER BY created_at DESC`,
 		userID,
 	)
@@ -255,7 +255,7 @@ func (app *App) getLinkByID(linkID int) (*models.Link, error) {
 
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`SELECT id, users_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
          FROM link WHERE id = $1`,
 		linkID,
 	).Scan(
