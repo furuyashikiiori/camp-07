@@ -30,18 +30,20 @@ func SetupRoutes(r *gin.Engine) {
 		api.POST("/signin", app.SignIn)
 
 		// ユーザー関連
-		api.GET("/users", app.GetUsers)
+		api.GET("/users", middleware.AuthRequired(), app.GetUsers)
 
 		// プロフィール関連
 		profiles := api.Group("/profiles")
+		profiles.Use(middleware.AuthRequired())
 		{
 			profiles.POST("", app.CreateProfile)          // プロフィール作成
 			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
 			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
 		}
 
-		// ユーザー関連
+		// 認証必要 - ユーザー関連
 		users := api.Group("/users")
+		users.Use(middleware.AuthRequired())
 		{
 			users.GET("/:userId/profiles", app.GetProfilesByUserID) // ユーザーのプロフィール一覧取得
 		}

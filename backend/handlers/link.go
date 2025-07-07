@@ -14,19 +14,26 @@ import (
 
 // リンク作成
 func (app *App) CreateLink(c *gin.Context) {
-	var req models.CreateLinkRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request", "details": err.Error()})
+	// JWTからユーザーIDを取得
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
 		return
 	}
 
-	// リクエストからユーザーIDを使用
+	var req models.CreateLinkRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	// JWTのユーザーIDを使用（リクエストのusers_idは不要に）
 	var linkID int
 	err := app.DB.QueryRowContext(
 		context.Background(),
 		`INSERT INTO link (users_id, image_url, title, description, url, created_at, updated_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		req.UsersID, req.ImageURL, req.Title, req.Description, req.URL, // req.UsersID を使用
+		userID, req.ImageURL, req.Title, req.Description, req.URL,
 		time.Now(), time.Now(),
 	).Scan(&linkID)
 

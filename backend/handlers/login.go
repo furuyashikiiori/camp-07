@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"net/http"
 	"time"
@@ -18,7 +19,6 @@ func (app *App) SignIn(c *gin.Context) {
 		return
 	}
 
-	// タイムアウト付きコンテキスト
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -45,6 +45,13 @@ func (app *App) SignIn(c *gin.Context) {
 		return
 	}
 
+	// JWTトークン生成
+	token, err := utils.GenerateJWT(id, email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
 	// ログイン成功レスポンス
 	c.JSON(http.StatusOK, gin.H{
 		"user": models.User{
@@ -52,5 +59,6 @@ func (app *App) SignIn(c *gin.Context) {
 			Name:  name,
 			Email: email,
 		},
+		"token": token, // トークンを追加
 	})
 }

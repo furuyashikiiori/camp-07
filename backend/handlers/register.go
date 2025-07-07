@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"net/http"
 	"time"
@@ -41,12 +42,20 @@ func (app *App) SignUp(c *gin.Context) {
 		return
 	}
 
-	// 登録成功レスポンス
+	// JWTトークン生成
+	token, err := utils.GenerateJWT(id, req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	// 登録成功レスポンス（1回だけ！）
 	c.JSON(http.StatusOK, gin.H{
 		"user": models.User{
 			ID:    id,
 			Name:  req.Name,
 			Email: req.Email,
 		},
+		"token": token,
 	})
 }
