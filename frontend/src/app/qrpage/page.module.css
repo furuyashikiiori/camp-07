@@ -59,16 +59,8 @@
 
 .backLink:hover {
   text-decoration: none;
-  opacity: 0.8; 
+  opacity: 0.8;
 }
-
-input[type="file"] {
-  margin-top: 10px;
-  margin-bottom: 20px;
-}
-
-textarea {
-  resize: vertical;
 
 .selectLabel {
   font-size: 1rem;
