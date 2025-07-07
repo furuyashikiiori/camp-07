@@ -48,6 +48,9 @@ export default function ListPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/" className={styles.backLink}>
+        &lt; Back StartPage
+      </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>Exchange List</h1>
 

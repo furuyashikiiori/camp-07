@@ -39,6 +39,22 @@
   margin-bottom: 30px;
 }
 
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8; 
+}
+
 /* ==== セクションごとのスタイル ==== */
 .section {
   margin-bottom: 12px;
