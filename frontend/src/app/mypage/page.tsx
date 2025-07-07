@@ -30,7 +30,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const userId = 16;
+        const userId = 16; //ログイン機能を実装していないため、固定のユーザーIDを使用
 
         const response = await fetch(`/api/users/${userId}/profiles`);
         if (!response.ok) {
