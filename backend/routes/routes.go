@@ -29,6 +29,9 @@ func SetupRoutes(r *gin.Engine) {
 		api.POST("/signup", app.SignUp)
 		api.POST("/signin", app.SignIn)
 
+		// ユーザー関連
+		api.GET("/users", app.GetUsers)
+
 		// プロフィール関連
 		profiles := api.Group("/profiles")
 		{
