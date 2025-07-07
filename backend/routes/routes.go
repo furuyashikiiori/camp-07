@@ -25,10 +25,8 @@ func SetupRoutes(r *gin.Engine) {
 		// QRコード生成
 		api.POST("/generate-qr", handlers.GenerateQRCode)
 
-		// 新規登録
+		// 認証関連
 		api.POST("/signup", app.SignUp)
-
-		// ログイン
 		api.POST("/signin", app.SignIn)
 
 		// リンク系API
@@ -39,7 +37,14 @@ func SetupRoutes(r *gin.Engine) {
 			links.GET("/:id", app.GetLink)                     // リンク詳細
 			links.PUT("/:id", app.UpdateLink)                  // リンク更新
 			links.DELETE("/:id", app.DeleteLink)               // リンク削除
-			links.GET("/types/common", app.GetCommonLinkTypes) // 共通リンクタイプ
+			links.GET("/types/common", app.GetCommonLinkTypes) // リンクテンプレ
+
+		// プロフィール関連
+		profiles := api.Group("/profiles")
+		{
+			profiles.POST("", app.CreateProfile)          // プロフィール作成
+			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
+			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
 		}
 	}
 }
