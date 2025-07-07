@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaListUl, FaIdBadge, FaCamera } from 'react-icons/fa';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+//import Header from '@/components/Header';
+//import Footer from '@/components/Footer';
 import styles from './page.module.css';
 
 export default function HomePage() {
@@ -31,7 +31,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.container}>
-      <Header />
+{/* <Header /> */}
 
       <main className={styles.main}>
         <video
@@ -85,7 +85,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <Footer />
+      { /* <Footer /> */}
     </div>
   );
 }
