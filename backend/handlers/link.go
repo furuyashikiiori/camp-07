@@ -14,36 +14,43 @@ import (
 
 // リンク作成
 func (app *App) CreateLink(c *gin.Context) {
-	var req models.CreateLinkRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request", "details": err.Error()})
+	// JWTからユーザーIDを取得
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "ユーザー情報が見つかりません"})
 		return
 	}
 
-	// リクエストからユーザーIDを使用
+	var req models.CreateLinkRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
+		return
+	}
+
+	// JWTのユーザーIDを使用（リクエストのuser_idは不要に）
 	var linkID int
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`INSERT INTO link (users_id, image_url, title, description, url, created_at, updated_at) 
+		`INSERT INTO link (user_id, image_url, title, description, url, created_at, updated_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		req.UsersID, req.ImageURL, req.Title, req.Description, req.URL, // req.UsersID を使用
+		userID, req.ImageURL, req.Title, req.Description, req.URL,
 		time.Now(), time.Now(),
 	).Scan(&linkID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create link", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの作成に失敗しました"})
 		return
 	}
 
 	// 作成したリンクを取得して返す
 	link, err := app.getLinkByID(linkID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch created link"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "作成したリンクの取得に失敗しました"})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "Link created successfully",
+		"message": "リンクを作成しました",
 		"link":    link,
 	})
 }
@@ -53,20 +60,20 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 	userIDStr := c.Param("user_id")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDが不正です"})
 		return
 	}
 
 	rows, err := app.DB.QueryContext(
 		context.Background(),
-		`SELECT id, users_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
          FROM link 
-         WHERE users_id = $1 
+         WHERE user_id = $1 
          ORDER BY created_at DESC`,
 		userID,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンク一覧の取得に失敗しました"})
 		return
 	}
 	defer rows.Close()
@@ -82,7 +89,7 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 			&link.CreatedAt, &link.UpdatedAt,
 		)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースの読み込みに失敗しました"})
 			return
 		}
 
@@ -108,16 +115,16 @@ func (app *App) GetLink(c *gin.Context) {
 	linkIDStr := c.Param("id")
 	linkID, err := strconv.Atoi(linkIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid link ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リンクIDが不正です"})
 		return
 	}
 
 	link, err := app.getLinkByID(linkID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Link not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "リンクが見つかりません"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの取得に失敗しました"})
 		}
 		return
 	}
@@ -130,13 +137,13 @@ func (app *App) UpdateLink(c *gin.Context) {
 	linkIDStr := c.Param("id")
 	linkID, err := strconv.Atoi(linkIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid link ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リンクIDが不正です"})
 		return
 	}
 
 	var req models.UpdateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
 		return
 	}
 
@@ -144,9 +151,9 @@ func (app *App) UpdateLink(c *gin.Context) {
 	existingLink, err := app.getLinkByID(linkID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Link not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "リンクが見つかりません"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの取得に失敗しました"})
 		}
 		return
 	}
@@ -182,19 +189,19 @@ func (app *App) UpdateLink(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update link"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの更新に失敗しました"})
 		return
 	}
 
 	// 更新後のリンクを取得
 	updatedLink, err := app.getLinkByID(linkID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated link"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新後のリンク取得に失敗しました"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Link updated successfully",
+		"message": "リンクを更新しました",
 		"link":    updatedLink,
 	})
 }
@@ -204,7 +211,7 @@ func (app *App) DeleteLink(c *gin.Context) {
 	linkIDStr := c.Param("id")
 	linkID, err := strconv.Atoi(linkIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid link ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リンクIDが不正です"})
 		return
 	}
 
@@ -212,9 +219,9 @@ func (app *App) DeleteLink(c *gin.Context) {
 	_, err = app.getLinkByID(linkID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Link not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "リンクが見つかりません"})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの取得に失敗しました"})
 		}
 		return
 	}
@@ -227,11 +234,11 @@ func (app *App) DeleteLink(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete link"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの削除に失敗しました"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Link deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "リンクを削除しました"})
 }
 
 // よくあるリンクタイプ取得
@@ -248,7 +255,7 @@ func (app *App) getLinkByID(linkID int) (*models.Link, error) {
 
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`SELECT id, users_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
          FROM link WHERE id = $1`,
 		linkID,
 	).Scan(

@@ -11,7 +11,7 @@ import styles from './page.module.css';
 type Contact = {
   id: number;
   name: string;
-  exchangeDate: string; 
+  exchangeDate: string;
 };
 
 export default function ListPage() {
@@ -24,10 +24,10 @@ export default function ListPage() {
 
     const dummyContacts: Contact[] = [
       { id: 1, name: '青メッシュ', exchangeDate: '2025-06-30' },
-      { id: 2, name: 'Ori',       exchangeDate: '2025-06-30' },
-      { id: 3, name: 'あべゆ',   exchangeDate: '2025-06-11' },
-      { id: 4, name: 'たちょ',     exchangeDate: '2025-05-09' },
-      { id: 5, name: 'みっくん',     exchangeDate: '2025-05-09' },
+      { id: 9, name: 'Ori', exchangeDate: '2025-06-30' },
+      { id: 3, name: 'あべゆ', exchangeDate: '2025-06-11' },
+      { id: 4, name: 'たちょ', exchangeDate: '2025-05-09' },
+      { id: 5, name: 'みっくん', exchangeDate: '2025-05-09' },
     ];
     setContacts(dummyContacts);
   }, []);
@@ -38,7 +38,7 @@ export default function ListPage() {
   const grouped = contacts.reduce<Record<string, Record<string, Contact[]>>>(
     (acc, c) => {
       const year = new Date(c.exchangeDate).getFullYear().toString();
-      const md = c.exchangeDate.slice(5); 
+      const md = c.exchangeDate.slice(5);
       acc[year] ??= {};
       acc[year][md] ??= [];
       acc[year][md].push(c);

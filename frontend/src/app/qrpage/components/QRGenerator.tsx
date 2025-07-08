@@ -5,16 +5,22 @@ import axios from "axios";
 import Image from "next/image";
 import styles from "./QRGenerator.module.css";
 
-const QRGenerator: React.FC = () => {
+interface QRGeneratorProps {
+  profileId: number;
+}
+
+const QRGenerator: React.FC<QRGeneratorProps> = ({ profileId }) => {
   const [url, setUrl] = useState("");
   const [qrData, setQrData] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const qrRef = useRef<HTMLImageElement>(null);
 
-  // コンポーネントマウント時にマイページのQRコードを自動生成
+  // プロフィールIDが変更されたときにQRコードを生成
   useEffect(() => {
-    const generateInitialQR = async () => {
+    const generateProfileQR = async () => {
+      if (!profileId) return;
+
       setIsLoading(true);
       setError(null);
       try {
@@ -23,7 +29,7 @@ const QRGenerator: React.FC = () => {
           if (process.env.NODE_ENV === "development") {
             return "http://localhost:3000";
           }
-          
+
           // 本番環境での分岐
           if (typeof window !== "undefined") {
             const hostname = window.location.hostname;
@@ -31,33 +37,34 @@ const QRGenerator: React.FC = () => {
               return "https://qrsona-dev.vercel.app";
             }
           }
-          
+
           // デフォルトは本番環境
           return "https://qrsona.vercel.app";
         };
-        
+
         const baseUrl = getBaseUrl();
-        const urlWithTimestamp = `${baseUrl}/mypage?t=${Date.now()}`;
+        const profileUrl = `${baseUrl}/profile/${profileId}`;
+        const urlWithTimestamp = `${profileUrl}?t=${Date.now()}`;
         const response = await axios.post(`/api/generate-qr`, {
           url: urlWithTimestamp,
         });
 
         if (response.data && response.data.qr_data) {
           setQrData(response.data.qr_data);
-          setUrl(`${baseUrl}/mypage`);
+          setUrl(profileUrl);
         } else {
           throw new Error("QRコードデータが見つかりません");
         }
       } catch (error) {
-        console.error("Error generating initial QR code:", error);
+        console.error("Error generating profile QR code:", error);
         setError("QRコードの生成に失敗しました。再試行してください。");
       } finally {
         setIsLoading(false);
       }
     };
 
-    generateInitialQR();
-  }, []);
+    generateProfileQR();
+  }, [profileId]);
 
   const handleReload = async () => {
     if (!url) return;
@@ -105,6 +112,7 @@ const QRGenerator: React.FC = () => {
   return (
     <div className={styles.qrGenerator}>
       <h1>QRコードの作成</h1>
+      <p className={styles.urlDisplay}>URL: {url}</p>
 
       {/* エラーメッセージ表示 */}
       {error && (

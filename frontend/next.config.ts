@@ -11,7 +11,7 @@ const getApiUrl = () => {
 };
 
 const nextConfig: NextConfig = {
-  trailingSlash: true,
+  // trailingSlash: true,
   images: {
     unoptimized: true,
   },

@@ -5,7 +5,7 @@ import "time"
 // Link構造体
 type Link struct {
 	ID          int       `json:"id" db:"id"`
-	UsersID     int       `json:"users_id" db:"users_id"`
+	UsersID     int       `json:"user_id" db:"user_id"`
 	ImageURL    *string   `json:"image_url,omitempty" db:"image_url"`
 	Title       string    `json:"title" db:"title"`
 	Description *string   `json:"description,omitempty" db:"description"`
@@ -16,7 +16,7 @@ type Link struct {
 
 // リンク作成用リクエスト
 type CreateLinkRequest struct {
-	UsersID     int     `json:"users_id" binding:"required"`
+	UsersID     int     `json:"user_id" binding:"required"`
 	ImageURL    *string `json:"image_url,omitempty"`
 	Title       string  `json:"title" binding:"required,max=100"`
 	Description *string `json:"description,omitempty"`
