@@ -14,26 +14,64 @@ import (
 
 // リンク作成
 func (app *App) CreateLink(c *gin.Context) {
-	// JWTからユーザーIDを取得
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "ユーザー情報が見つかりません"})
-		return
-	}
-
 	var req models.CreateLinkRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
 		return
 	}
 
-	// JWTのユーザーIDを使用（リクエストのuser_idは不要に）
+	// user_idまたはprofile_idのいずれかが必要
+	if req.UsersID == nil && req.ProfileID == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_idまたはprofile_idが必要です"})
+		return
+	}
+
+	// profile_idが指定されている場合、プロフィールの存在確認
+	if req.ProfileID != nil {
+		var exists bool
+		err := app.DB.QueryRowContext(
+			context.Background(),
+			"SELECT EXISTS(SELECT 1 FROM profiles WHERE id = $1)",
+			*req.ProfileID,
+		).Scan(&exists)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
+			return
+		}
+
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールが存在しません"})
+			return
+		}
+	}
+
+	// user_idが指定されている場合、ユーザーの存在確認
+	if req.UsersID != nil {
+		var exists bool
+		err := app.DB.QueryRowContext(
+			context.Background(),
+			"SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
+			*req.UsersID,
+		).Scan(&exists)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
+			return
+		}
+
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーが存在しません"})
+			return
+		}
+	}
+
 	var linkID int
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`INSERT INTO link (user_id, image_url, title, description, url, created_at, updated_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-		userID, req.ImageURL, req.Title, req.Description, req.URL,
+		`INSERT INTO link (user_id, profile_id, image_url, title, description, url, created_at, updated_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+		req.UsersID, req.ProfileID, req.ImageURL, req.Title, req.Description, req.URL,
 		time.Now(), time.Now(),
 	).Scan(&linkID)
 
@@ -66,9 +104,9 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 
 	rows, err := app.DB.QueryContext(
 		context.Background(),
-		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, profile_id, image_url, title, description, url, created_at, updated_at 
          FROM link 
-         WHERE user_id = $1 
+         WHERE user_id = $1 OR profile_id IN (SELECT id FROM profiles WHERE user_id = $1)
          ORDER BY created_at DESC`,
 		userID,
 	)
@@ -81,10 +119,11 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 	var links []models.Link
 	for rows.Next() {
 		var link models.Link
+		var userIDPtr, profileIDPtr sql.NullInt64
 		var imageURL, description sql.NullString
 
 		err := rows.Scan(
-			&link.ID, &link.UsersID,
+			&link.ID, &userIDPtr, &profileIDPtr,
 			&imageURL, &link.Title, &description, &link.URL,
 			&link.CreatedAt, &link.UpdatedAt,
 		)
@@ -94,6 +133,76 @@ func (app *App) GetLinksByUser(c *gin.Context) {
 		}
 
 		// NULL値の処理
+		if userIDPtr.Valid {
+			link.UsersID = int(userIDPtr.Int64)
+		}
+		if profileIDPtr.Valid {
+			profileID := int(profileIDPtr.Int64)
+			link.ProfileID = &profileID
+		}
+		if imageURL.Valid {
+			link.ImageURL = &imageURL.String
+		}
+		if description.Valid {
+			link.Description = &description.String
+		}
+
+		links = append(links, link)
+	}
+
+	c.JSON(http.StatusOK, models.LinkListResponse{
+		Links: links,
+		Total: len(links),
+	})
+}
+
+// プロフィール別リンク一覧取得
+func (app *App) GetLinksByProfile(c *gin.Context) {
+	profileIDStr := c.Param("profile_id")
+	profileID, err := strconv.Atoi(profileIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールIDが不正です"})
+		return
+	}
+
+	rows, err := app.DB.QueryContext(
+		context.Background(),
+		`SELECT id, user_id, profile_id, image_url, title, description, url, created_at, updated_at 
+         FROM link 
+         WHERE profile_id = $1 
+         ORDER BY created_at DESC`,
+		profileID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンク一覧の取得に失敗しました"})
+		return
+	}
+	defer rows.Close()
+
+	var links []models.Link
+	for rows.Next() {
+		var link models.Link
+		var userIDPtr, profileIDPtr sql.NullInt64
+		var imageURL, description sql.NullString
+
+		err := rows.Scan(
+			&link.ID, &userIDPtr, &profileIDPtr,
+			&imageURL, &link.Title, &description, &link.URL,
+			&link.CreatedAt, &link.UpdatedAt,
+		)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースの読み込みに失敗しました"})
+			return
+		}
+
+		// NULL値の処理
+		if userIDPtr.Valid {
+			link.UsersID = int(userIDPtr.Int64)
+		}
+		if profileIDPtr.Valid {
+			profileIDInt := int(profileIDPtr.Int64)
+			link.ProfileID = &profileIDInt
+		}
 		if imageURL.Valid {
 			link.ImageURL = &imageURL.String
 		}
@@ -251,15 +360,16 @@ func (app *App) GetCommonLinkTypes(c *gin.Context) {
 // ヘルパー関数: IDでリンクを取得
 func (app *App) getLinkByID(linkID int) (*models.Link, error) {
 	var link models.Link
+	var userIDPtr, profileIDPtr sql.NullInt64
 	var imageURL, description sql.NullString
 
 	err := app.DB.QueryRowContext(
 		context.Background(),
-		`SELECT id, user_id, image_url, title, description, url, created_at, updated_at 
+		`SELECT id, user_id, profile_id, image_url, title, description, url, created_at, updated_at 
          FROM link WHERE id = $1`,
 		linkID,
 	).Scan(
-		&link.ID, &link.UsersID,
+		&link.ID, &userIDPtr, &profileIDPtr,
 		&imageURL, &link.Title, &description, &link.URL,
 		&link.CreatedAt, &link.UpdatedAt,
 	)
@@ -269,6 +379,13 @@ func (app *App) getLinkByID(linkID int) (*models.Link, error) {
 	}
 
 	// NULL値の処理
+	if userIDPtr.Valid {
+		link.UsersID = int(userIDPtr.Int64)
+	}
+	if profileIDPtr.Valid {
+		profileID := int(profileIDPtr.Int64)
+		link.ProfileID = &profileID
+	}
 	if imageURL.Valid {
 		link.ImageURL = &imageURL.String
 	}

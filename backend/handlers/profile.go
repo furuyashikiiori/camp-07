@@ -87,7 +87,7 @@ func (app *App) CreateProfile(c *gin.Context) {
 		}
 
 		// 公開URL設定
-		iconURL = fmt.Sprintf("/api/profiles/%d/icon", req.UserID)
+		iconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", req.UserID)
 	}
 
 	// 誕生日の処理
@@ -324,7 +324,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 
 	// アイコンURLを設定
 	if newIconPath != "" || (currentIconPath.Valid && currentIconPath.String != "") {
-		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -365,7 +365,8 @@ func (app *App) GetProfile(c *gin.Context) {
 
 	// アイコンURLの設定
 	if iconPath.Valid && iconPath.String != "" {
-		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+		// 完全なURLを返す（バックエンドのポート8080を指定）
+		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -498,7 +499,7 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 		// アイコンURLの設定
 		if iconPath.Valid && iconPath.String != "" {
 			profile.IconPath = iconPath.String
-			profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 		}
 
 		profiles = append(profiles, profile)
