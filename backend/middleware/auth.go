@@ -13,7 +13,7 @@ func AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "認証ヘッダーが必要です"})
 			c.Abort()
 			return
 		}
@@ -21,14 +21,14 @@ func AuthRequired() gin.HandlerFunc {
 		// "Bearer <token>" から token 部分を取得
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "認証ヘッダーの形式が正しくありません"})
 			c.Abort()
 			return
 		}
 
 		claims, err := utils.ValidateJWT(parts[1])
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "トークンが無効です"})
 			c.Abort()
 			return
 		}
