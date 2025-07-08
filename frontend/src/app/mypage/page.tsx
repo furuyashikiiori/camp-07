@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
-import { getUser, User } from '../../utils/auth';
+import { getUser, User, authenticatedFetch, getToken } from '../../utils/auth';
 
 type Profile = {
   id: number;
@@ -32,17 +32,53 @@ export default function ProfilePage() {
   useEffect(() => {
     // ログイン中のユーザー情報を取得
     const user = getUser();
+    const token = getToken();
+
+    console.log('User:', user);
+    console.log('Token:', token ? 'Present' : 'Missing');
+
     if (!user) {
       // ログインしていない場合はログインページにリダイレクト
+      console.log('No user found, redirecting to login');
       router.push('/login');
       return;
     }
+
     setCurrentUser(user);
+
+    // トークンがない場合の処理
+    if (!token) {
+      console.error('No authentication token found, showing test data');
+      // テストデータを設定
+      const testProfiles: Profile[] = [
+        {
+          id: 1,
+          user_id: user.id,
+          display_name: user.name,
+          title: 'ビジネス用プロフィール(no token)',
+          description: 'トークンがない場合のテストデータです。',
+          aka: 'エンジニア',
+          hometown: '東京',
+          hobby: 'プログラミング',
+          comment: 'よろしくお願いします。'
+        }
+      ];
+      setProfiles(testProfiles);
+      setLoading(false);
+      return;
+    }
 
     const fetchProfiles = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/users/${user.id}/profiles`);
+        console.log('Fetching profiles for user ID:', user.id);
+        const response = await authenticatedFetch(`http://localhost:8080/api/users/${user.id}/profiles`);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+
           // バックエンドが起動していない場合のテストデータ
           console.warn('Backend not available, using test data');
           const testProfiles: Profile[] = [
@@ -50,7 +86,7 @@ export default function ProfilePage() {
               id: 1,
               user_id: user.id,
               display_name: user.name,
-              title: 'ビジネス用プロフィール',
+              title: 'ビジネス用プロフィール(test)',
               description: 'ビジネス用のプロフィールです。',
               aka: 'エンジニア',
               hometown: '東京',
@@ -61,7 +97,7 @@ export default function ProfilePage() {
               id: 2,
               user_id: user.id,
               display_name: user.name,
-              title: '趣味用プロフィール',
+              title: '趣味用プロフィール(test)',
               description: '趣味・SNS用のプロフィールです。',
               aka: '写真家',
               hometown: '神奈川',
@@ -75,10 +111,11 @@ export default function ProfilePage() {
         }
 
         const data = await response.json();
+        console.log('Received data:', data);
         setProfiles(data.profiles || []);
       } catch (err) {
+        console.error('Fetch error:', err);
         setError('プロフィールの取得に失敗しました。');
-        console.error(err);
       } finally {
         setLoading(false);
       }

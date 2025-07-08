@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaListUl, FaIdBadge, FaCamera } from 'react-icons/fa';
-import LogoutButton from '@/components/LogoutButton';       /* ← 追加 */
+import LogoutButton from '@/components/LogoutButton';
+import { getUser, getToken } from '@/utils/auth';
 import styles from './page.module.css';
 
 /*──────────────────────────────────────
@@ -13,6 +14,21 @@ export default function HomePage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showButtons, setShowButtons] = useState(false);
+
+  /* 認証状態チェック */
+  useEffect(() => {
+    const user = getUser();
+    const token = getToken();
+
+    console.log('HomePage - User:', user);
+    console.log('HomePage - Token:', token ? 'Present' : 'Missing');
+
+    if (!user) {
+      console.log('No user found, redirecting to auth');
+      router.push('/auth');
+      return;
+    }
+  }, [router]);
 
   /* 背景動画の再生 & ボタン表示タイミング */
   useEffect(() => {
@@ -59,9 +75,8 @@ export default function HomePage() {
         {/* ─ オーバーレイ（遅延フェードインの 3 ボタン） ─ */}
         <div className={styles.overlay}>
           <div
-            className={`${styles.buttonRow} ${
-              showButtons ? styles.fadeIn : styles.hidden
-            }`}
+            className={`${styles.buttonRow} ${showButtons ? styles.fadeIn : styles.hidden
+              }`}
           >
             <button
               className={styles.circleButton}

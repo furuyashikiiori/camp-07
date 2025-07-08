@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setUser } from '@/utils/auth';
+import { setUser, setToken } from '@/utils/auth';
 import styles from './page.module.css';
 import Link from 'next/link';
 
@@ -23,7 +23,7 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/signup', {
+      const res = await fetch('http://localhost:8080/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -32,7 +32,12 @@ export default function SignupPage() {
       if (!res.ok) throw new Error('サインアップに失敗しました');
 
       const data = await res.json();
+      console.log('Signup response:', data);
       setUser(data.user);
+      if (data.token) {
+        setToken(data.token);
+        console.log('Token saved successfully');
+      }
       router.replace('/');
     } catch (err: any) {
       setError(err.message);

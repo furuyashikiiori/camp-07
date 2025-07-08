@@ -1,13 +1,13 @@
 'use client';
 
-import { clearUser } from '@/utils/auth';
+import { logout } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 
 export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = () => {
-    clearUser();        // localStorage から user を削除
+    logout();        // localStorage から user と token を削除
     router.replace('/auth'); // 認証ガードが働くので /auth に遷移
   };
 
