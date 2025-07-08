@@ -43,11 +43,12 @@ func SetupRoutes(r *gin.Engine) {
 		profiles.Use(middleware.AuthRequired())
 		{
 			profiles.POST("", app.CreateProfile)          // プロフィール作成
+			profiles.GET("/:id", app.GetProfile)          // プロフィール取得
 			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
 			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
 
 			// プロフィールごとのオプションプロフィール一覧取得
-			profiles.GET("/:id/option_profiles", app.GetOptionProfilesByProfileID)
+			profiles.GET("/:id/option-profiles", app.GetOptionProfilesByProfileID)
 		}
 
 		// option_profiles関連
