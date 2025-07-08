@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import QRGenerator from "./components/QRGenerator";
+import QRScanner from "./components/QRScanner";
 import Link from 'next/link';
 import styles from "./page.module.css";
 import { getUser, authenticatedFetch } from '@/utils/auth';
@@ -21,6 +22,7 @@ export default function QRPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -58,7 +60,27 @@ export default function QRPage() {
   };
 
   const handleScanClick = () => {
-    alert('QRコードの読み取り機能は未実装です');
+    setIsScannerOpen(true);
+  };
+
+  const handleScanResult = (result: string) => {
+    console.log('Scanned QR code:', result);
+    // URLの場合は該当ページに遷移
+    try {
+      const url = new URL(result);
+      if (url.origin === window.location.origin) {
+        router.push(url.pathname);
+      } else {
+        window.open(result, '_blank');
+      }
+    } catch {
+      // URLでない場合はアラートで表示
+      alert(`スキャン結果: ${result}`);
+    }
+  };
+
+  const handleScannerClose = () => {
+    setIsScannerOpen(false);
   };
 
   return (
@@ -106,33 +128,12 @@ export default function QRPage() {
           </button>
         </div>
       </main>
+
+      <QRScanner
+        isOpen={isScannerOpen}
+        onClose={handleScannerClose}
+        onScan={handleScanResult}
+      />
     </div>
   );
 }
-
-
-// 'use client';
-
-// import QRGenerator from "./components/QRGenerator";
-// import Link from 'next/link';
-// import styles from "./page.module.css";
-
-// export default function QRPage() {
-//   return (
-//     <div className={styles.container}>
-//       <main className={styles.main}>
-//         <Link href="/" className={styles.backLink}>
-//           &lt; Back StartPage
-//         </Link>
-
-//         <h1 className={styles.title}>QRコードページ</h1>
-
-//         <div className={styles.card}>
-//           <QRGenerator />
-//           <p className={styles.paragraph}>このQRコードをスキャンして、特定の情報にアクセスできます。</p>
-//           <p className={styles.paragraph}>localhost:3000/mypagenoのURLをQRコードにして表示してる状態</p>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// }
