@@ -16,7 +16,7 @@ func (app *App) GetUsers(c *gin.Context) {
 
 	rows, err := app.DB.QueryContext(ctx, "SELECT id, name, email FROM users ORDER BY id")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ユーザー一覧の取得に失敗しました"})
 		return
 	}
 	defer rows.Close()
@@ -25,14 +25,14 @@ func (app *App) GetUsers(c *gin.Context) {
 	for rows.Next() {
 		var user models.User
 		if err := rows.Scan(&user.ID, &user.Name, &user.Email); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベーススキャンエラー"})
 			return
 		}
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
