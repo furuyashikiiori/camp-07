@@ -20,7 +20,7 @@ const QRGenerator: React.FC<QRGeneratorProps> = ({ profileId }) => {
   useEffect(() => {
     const generateProfileQR = async () => {
       if (!profileId) return;
-      
+
       setIsLoading(true);
       setError(null);
       try {
@@ -29,7 +29,7 @@ const QRGenerator: React.FC<QRGeneratorProps> = ({ profileId }) => {
           if (process.env.NODE_ENV === "development") {
             return "http://localhost:3000";
           }
-          
+
           // 本番環境での分岐
           if (typeof window !== "undefined") {
             const hostname = window.location.hostname;
@@ -37,11 +37,11 @@ const QRGenerator: React.FC<QRGeneratorProps> = ({ profileId }) => {
               return "https://qrsona-dev.vercel.app";
             }
           }
-          
+
           // デフォルトは本番環境
           return "https://qrsona.vercel.app";
         };
-        
+
         const baseUrl = getBaseUrl();
         const profileUrl = `${baseUrl}/profile/${profileId}`;
         const urlWithTimestamp = `${profileUrl}?t=${Date.now()}`;
@@ -112,7 +112,7 @@ const QRGenerator: React.FC<QRGeneratorProps> = ({ profileId }) => {
   return (
     <div className={styles.qrGenerator}>
       <h1>QRコードの作成</h1>
-      <p className={styles.urlDisplay}>生成対象URL: {url}</p>
+      <p className={styles.urlDisplay}>URL: {url}</p>
 
       {/* エラーメッセージ表示 */}
       {error && (
