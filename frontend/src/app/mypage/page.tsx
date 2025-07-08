@@ -150,7 +150,11 @@ export default function ProfilePage() {
             <p className={styles.message}>プロフィールがまだありません。</p>
           ) : (
             profiles.map((profile) => (
-              <div key={profile.id} className={styles.profileCard}>
+              <div 
+                key={profile.id} 
+                className={styles.profileCard}
+                onClick={() => router.push(`/profile/${profile.id}`)}
+              >
                 <h2 className={styles.cardTitle}>{profile.title}</h2>
                 <p className={styles.cardDescription}>{profile.description || 'プロフィールの説明がありません'}</p>
               </div>
