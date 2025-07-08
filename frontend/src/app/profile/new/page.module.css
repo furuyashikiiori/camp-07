@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background-image: url('/backpicPC.png');
+  background-image: url("/backpicPC.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -13,7 +13,7 @@
 
 @media (max-width: 768px) {
   .container {
-    background-image: url('/bsackpicMobile.png');
+    background-image: url("/bsackpicMobile.png");
   }
 }
 
@@ -108,7 +108,7 @@
 
 .backLink:hover {
   text-decoration: none;
-  opacity: 0.8; 
+  opacity: 0.8;
 }
 
 .snsSection {
@@ -119,8 +119,23 @@
 
 .optionalField {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.optionalField input,
+.optionalField textarea {
+  margin-bottom: 5px;
+}
+
+.optionalField label {
+  font-size: 0.9rem;
+  margin-top: 5px;
 }
 
 .addOptionalButton {
