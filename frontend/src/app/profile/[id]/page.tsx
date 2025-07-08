@@ -1,84 +1,87 @@
-/* -------------------------------------------------
-   プロフィール詳細（フロント専用ダミー版）
-   /profile/[id] にアクセスすると下記ダミーを表示
---------------------------------------------------*/
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 import Link from 'next/link';
+import { authenticatedFetch } from '@/utils/auth';
 
-/* 型定義（new ページに合わせる） */
 type Profile = {
   id: number;
-  name: string;
-  title?: string;
-  bio?: string;
-  birthday?: string;     // ISO 例: 2000-04-01
-  birthplace?: string;
+  user_id: number;
+  display_name: string;
+  icon_url?: string;
+  aka?: string;
+  hometown?: string;
+  birthdate?: string;
   hobby?: string;
-  sns?: string;          // URL or @handle
-  optionalFields?: { label: string; value: string }[];
+  comment?: string;
+  title?: string;
+  description?: string;
+  option_profiles?: { label: string; value: string }[];
 };
 
-/* ───── ダミーデータ ───── */
-const dummyProfiles: Profile[] = [
-  {
-    id: 1,
-    name: '青メッシュ',
-    title: 'Frontend Engineer',
-    bio: 'デザインが大好き!',
-    birthday: '2004-04-07',
-    birthplace: '山口県',
-    hobby: 'ホッケー',
-    sns: '@blue_mesh',
-    optionalFields: [
-      { label: '好きな言語', value: 'React, css' },
-      { label: '資格', value: '応用秦野技術者試験' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Ori',
-    title: 'Backend / Infra',
-    bio: 'Go と Kubernetes が主食。',
-    birthday: '2004-10-14',
-    birthplace: '長野県',
-    hobby: 'ゲーム',
-    sns: '@ori_dev',
-    optionalFields: [
-      { label: '好きな DB', value: 'PostgreSQL' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'あべゆー',
-    title: '学生エンジニア',
-    bio: '大学で情報工学を専攻中。',
-    birthplace: '秦野県',
-    hobby: 'カラオケ',
-    sns: '@Aby__1202',
-  },
-  {
-    id: 4,
-    name: 'たちょ',
-    bio: 'ミセスグリーンアップルが大好物です',
-    hobby: 'ライブ',
-    sns: '@tacyo',
-  },
-];
+type OptionProfile = {
+  id: number;
+  title: string;
+  content: string;
+  profile_id: number;
+};
 
-/* ───── コンポーネント ───── */
 export default function ProfileDetail() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const profile = dummyProfiles.find((p) => p.id === Number(params.id));
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [optionProfiles, setOptionProfiles] = useState<OptionProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!profile) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [profileResponse, optionResponse] = await Promise.all([
+          authenticatedFetch(`/api/profiles/${params.id}`),
+          authenticatedFetch(`/api/profiles/${params.id}/option-profiles`)
+        ]);
+
+        if (!profileResponse.ok) {
+          throw new Error('プロフィールの取得に失敗しました');
+        }
+        const profileData = await profileResponse.json();
+        setProfile(profileData);
+
+        if (optionResponse.ok) {
+          const optionData = await optionResponse.json();
+          console.log('Option profiles data:', optionData);
+          setOptionProfiles(optionData.option_profiles || []);
+        } else {
+          console.log('Option profiles response error:', optionResponse.status);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '不明なエラーが発生しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
+
+  if (loading) {
     return (
       <div className={styles.container}>
         <div className={styles.overlay}>
-          <p className={styles.message}>プロフィールが見つかりませんでした。</p>
+          <p className={styles.message}>読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.overlay}>
+          <p className={styles.message}>{error || 'プロフィールが見つかりませんでした。'}</p>
           <button className={styles.backButton} onClick={() => router.back()}>
             戻る
           </button>
@@ -87,10 +90,9 @@ export default function ProfileDetail() {
     );
   }
 
-  /* 誕生日の整形 (任意) */
   const birthdayJP =
-    profile.birthday &&
-    new Date(profile.birthday).toLocaleDateString('ja-JP', {
+    profile.birthdate &&
+    new Date(profile.birthdate).toLocaleDateString('ja-JP', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -103,14 +105,28 @@ export default function ProfileDetail() {
       </Link>
 
       <div className={styles.overlay}>
-        <h1 className={styles.title}>{profile.name}</h1>
+        <h1 className={styles.title}>{profile.display_name}</h1>
         {profile.title && <p className={styles.subtitle}>{profile.title}</p>}
 
         <div className={styles.section}>
-          {profile.bio && (
+          {profile.aka && (
             <div className={styles.row}>
-              <span className={styles.label}>Bio</span>
-              <span className={styles.value}>{profile.bio}</span>
+              <span className={styles.label}>肩書き</span>
+              <span className={styles.value}>{profile.aka}</span>
+            </div>
+          )}
+
+          {profile.comment && (
+            <div className={styles.row}>
+              <span className={styles.label}>コメント</span>
+              <span className={styles.value}>{profile.comment}</span>
+            </div>
+          )}
+
+          {profile.description && (
+            <div className={styles.row}>
+              <span className={styles.label}>説明</span>
+              <span className={styles.value}>{profile.description}</span>
             </div>
           )}
 
@@ -121,10 +137,10 @@ export default function ProfileDetail() {
             </div>
           )}
 
-          {profile.birthplace && (
+          {profile.hometown && (
             <div className={styles.row}>
               <span className={styles.label}>出身地</span>
-              <span className={styles.value}>{profile.birthplace}</span>
+              <span className={styles.value}>{profile.hometown}</span>
             </div>
           )}
 
@@ -135,35 +151,13 @@ export default function ProfileDetail() {
             </div>
           )}
 
-          {profile.sns && (
-            <div className={styles.row}>
-              <span className={styles.label}>SNS</span>
-              <span className={styles.value}>
-                <a
-                  href={
-                    profile.sns.startsWith('@')
-                      ? `https://twitter.com/${profile.sns.slice(1)}`
-                      : profile.sns
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {profile.sns}
-                </a>
-              </span>
-            </div>
-          )}
-
-          {/* 任意項目 */}
-          {profile.optionalFields?.map(
-            (field, idx) =>
-              field.label &&
-              field.value && (
-                <div className={styles.row} key={idx}>
-                  <span className={styles.label}>{field.label}</span>
-                  <span className={styles.value}>{field.value}</span>
-                </div>
-              ),
+          {optionProfiles.map(
+            (optionProfile, idx) => (
+              <div className={styles.row} key={idx}>
+                <span className={styles.label}>{optionProfile.title}</span>
+                <span className={styles.value}>{optionProfile.content}</span>
+              </div>
+            ),
           )}
         </div>
 
