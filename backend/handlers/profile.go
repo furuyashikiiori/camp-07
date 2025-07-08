@@ -427,9 +427,14 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 
 // GetProfilesByUserID はユーザーIDに基づいてプロフィール一覧を取得するハンドラーです
 func (app *App) GetProfilesByUserID(c *gin.Context) {
+	// デバッグ用：リクエストの詳細をログ出力
+	fmt.Printf("GetProfilesByUserID called - User ID from params: %s\n", c.Param("userId"))
+	fmt.Printf("Authorization header: %s\n", c.GetHeader("Authorization"))
+
 	// URLからユーザーIDを取得
 	userID, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
+		fmt.Printf("Error parsing user ID: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDが不正です"})
 		return
 	}

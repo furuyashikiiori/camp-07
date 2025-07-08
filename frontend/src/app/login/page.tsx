@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setUser } from '@/utils/auth';
+import { setUser, setToken } from '@/utils/auth';
 import styles from './page.module.css';
 import Link from 'next/link';
 
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/signin', {
+      const res = await fetch('http://localhost:8080/api/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -28,7 +28,12 @@ export default function LoginPage() {
       if (!res.ok) throw new Error('ログインに失敗しました');
 
       const data = await res.json();
+      console.log('Login response:', data);
       setUser(data.user);
+      if (data.token) {
+        setToken(data.token);
+        console.log('Token saved successfully');
+      }
       router.replace('/');
     } catch (err: any) {
       setError(err.message);
