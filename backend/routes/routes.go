@@ -45,6 +45,18 @@ func SetupRoutes(r *gin.Engine) {
 			profiles.POST("", app.CreateProfile)          // プロフィール作成
 			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
 			profiles.GET("/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得
+
+			// プロフィールごとのオプションプロフィール一覧取得
+			profiles.GET("/:id/option_profiles", app.GetOptionProfilesByProfileID)
+		}
+
+		// option_profiles関連
+		optionProfiles := api.Group("/option_profiles")
+		optionProfiles.Use(middleware.AuthRequired())
+		{
+			optionProfiles.POST("", app.CreateOptionProfile)       // 作成
+			optionProfiles.PATCH("/:id", app.UpdateOptionProfile)  // 更新
+			optionProfiles.DELETE("/:id", app.DeleteOptionProfile) // 削除
 		}
 
 		// 認証必要 - ユーザー関連サブ

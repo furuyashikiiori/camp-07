@@ -6,18 +6,19 @@ import (
 
 // Profile はユーザーのプロフィール情報を表します
 type Profile struct {
-	ID          int       `json:"id" db:"id"`
-	UserID      int       `json:"user_id" db:"user_id"`
-	DisplayName string    `json:"display_name" db:"display_name"`
-	IconPath    string    `json:"icon_path,omitempty" db:"icon_path"`
-	IconURL     string    `json:"icon_url,omitempty" db:"-"`              // DB上にないが、フロントに返す用
-	AKA         string    `json:"aka,omitempty" db:"aka"`                 // 肩書き
-	Hometown    string    `json:"hometown,omitempty" db:"hometown"`       // 出身地
-	Birthdate   time.Time `json:"birthdate,omitempty" db:"birthdate"`     // 誕生日
-	Hobby       string    `json:"hobby,omitempty" db:"hobby"`             // 趣味
-	Comment     string    `json:"comment,omitempty" db:"comment"`         // コメント
-	Title       string    `json:"title,omitempty" db:"title"`             // タイトル
-	Description string    `json:"description,omitempty" db:"description"` // 説明
+	ID             int             `json:"id" db:"id"`
+	UserID         int             `json:"user_id" db:"user_id"`
+	DisplayName    string          `json:"display_name" db:"display_name"`
+	IconPath       string          `json:"icon_path,omitempty" db:"icon_path"`
+	IconURL        string          `json:"icon_url,omitempty" db:"-"`              // DB上にないが、フロントに返す用
+	AKA            string          `json:"aka,omitempty" db:"aka"`                 // 肩書き
+	Hometown       string          `json:"hometown,omitempty" db:"hometown"`       // 出身地
+	Birthdate      time.Time       `json:"birthdate,omitempty" db:"birthdate"`     // 誕生日
+	Hobby          string          `json:"hobby,omitempty" db:"hobby"`             // 趣味
+	Comment        string          `json:"comment,omitempty" db:"comment"`         // コメント
+	Title          string          `json:"title,omitempty" db:"title"`             // タイトル
+	Description    string          `json:"description,omitempty" db:"description"` // 説明
+	OptionProfiles []OptionProfile `json:"option_profiles,omitempty"`              // オプションプロフィールのリスト
 }
 
 // CreateProfileRequest はプロフィール作成リクエストを表します
