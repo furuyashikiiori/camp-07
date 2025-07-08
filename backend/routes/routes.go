@@ -35,6 +35,7 @@ func SetupRoutes(r *gin.Engine) {
 			links.GET("/:id", app.GetLink)                     // リンク詳細取得
 			links.PUT("/:id", app.UpdateLink)                  // リンク更新
 			links.DELETE("/:id", app.DeleteLink)               // リンク削除
+
 			links.GET("/types/common", app.GetCommonLinkTypes) // 共通リンクテンプレ取得
 		}
 
