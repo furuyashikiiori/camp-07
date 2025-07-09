@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
+import AuthGuard from "@/components/AuthGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,11 +33,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SessionProvider>
+        <AuthGuard>
           {children}
-        </SessionProvider>
+        </AuthGuard>
       </body>
     </html>
   );

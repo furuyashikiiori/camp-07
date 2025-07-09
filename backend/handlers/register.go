@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"net/http"
 	"time"
@@ -14,14 +15,14 @@ import (
 func (app *App) SignUp(c *gin.Context) {
 	var req models.SignUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエストが不正です"})
 		return
 	}
 
 	// パスワードハッシュ化
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "サーバー内部エラーが発生しました"})
 		return
 	}
 
@@ -37,7 +38,14 @@ func (app *App) SignUp(c *gin.Context) {
 	).Scan(&id)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ユーザー登録に失敗しました"})
+		return
+	}
+
+	// JWTトークン生成
+	token, err := utils.GenerateJWT(id, req.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "トークンの生成に失敗しました"})
 		return
 	}
 
@@ -48,5 +56,6 @@ func (app *App) SignUp(c *gin.Context) {
 			Name:  req.Name,
 			Email: req.Email,
 		},
+		"token": token,
 	})
 }

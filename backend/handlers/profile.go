@@ -29,10 +29,10 @@ func (app *App) CreateProfile(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		fmt.Printf("JSON binding error: %v\n", err)
 		if strings.Contains(err.Error(), "title") {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Title field is required"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "タイトルは必須項目です"})
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid request format: %v", err)})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエスト形式が不正です"})
 		return
 	}
 
@@ -46,12 +46,12 @@ func (app *App) CreateProfile(c *gin.Context) {
 
 	if err != nil {
 		fmt.Printf("Database error checking user: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Database error: %v", err)})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
 	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User does not exist"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーが存在しません"})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (app *App) CreateProfile(c *gin.Context) {
 		// Base64をデコード
 		iconData, err := base64.StdEncoding.DecodeString(req.IconBase64)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image data"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "画像データが不正です"})
 			return
 		}
 
@@ -71,7 +71,7 @@ func (app *App) CreateProfile(c *gin.Context) {
 		uploadDir := "./uploads"
 		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 			if err := os.MkdirAll(uploadDir, 0755); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
 				return
 			}
 		}
@@ -82,12 +82,12 @@ func (app *App) CreateProfile(c *gin.Context) {
 
 		// ファイルに保存
 		if err := os.WriteFile(iconPath, iconData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
 			return
 		}
 
 		// 公開URL設定
-		iconURL = fmt.Sprintf("/api/profiles/%d/icon", req.UserID)
+		iconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", req.UserID)
 	}
 
 	// 誕生日の処理
@@ -95,7 +95,7 @@ func (app *App) CreateProfile(c *gin.Context) {
 	if req.Birthdate != "" {
 		parsedDate, err := time.Parse("2006-01-02", req.Birthdate)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid birthdate format. Use YYYY-MM-DD"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "誕生日の形式が不正です。YYYY-MM-DD形式で入力してください"})
 			return
 		}
 		birthdate = &parsedDate
@@ -118,7 +118,7 @@ func (app *App) CreateProfile(c *gin.Context) {
 
 	if err != nil {
 		fmt.Printf("Database error creating profile: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create profile", "details": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "プロフィールの作成に失敗しました"})
 		return
 	}
 
@@ -148,13 +148,13 @@ func (app *App) CreateProfile(c *gin.Context) {
 func (app *App) UpdateProfile(c *gin.Context) {
 	profileID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールIDが不正です"})
 		return
 	}
 
 	var req models.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエスト形式が不正です"})
 		return
 	}
 
@@ -168,12 +168,12 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	).Scan(&userID, &currentIconPath)
 
 	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "プロフィールが見つかりません"})
 		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
@@ -189,7 +189,6 @@ func (app *App) UpdateProfile(c *gin.Context) {
 		params = append(params, req.DisplayName)
 	}
 
-	// 新しいフィールドの更新処理
 	if req.AKA != "" {
 		paramCount++
 		query += fmt.Sprintf("aka = $%d, ", paramCount)
@@ -205,7 +204,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	if req.Birthdate != "" {
 		birthdate, err := time.Parse("2006-01-02", req.Birthdate)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid birthdate format. Use YYYY-MM-DD"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "誕生日の形式が不正です。YYYY-MM-DD形式で入力してください"})
 			return
 		}
 		paramCount++
@@ -244,7 +243,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 		// Base64をデコード
 		iconData, err := base64.StdEncoding.DecodeString(req.IconBase64)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image data"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "画像データが不正です"})
 			return
 		}
 
@@ -252,7 +251,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 		uploadDir := "./uploads"
 		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 			if err := os.MkdirAll(uploadDir, 0755); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create upload directory"})
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
 				return
 			}
 		}
@@ -260,7 +259,6 @@ func (app *App) UpdateProfile(c *gin.Context) {
 		// 古いアイコンがあれば削除
 		if currentIconPath.Valid && currentIconPath.String != "" {
 			if err := os.Remove(currentIconPath.String); err != nil && !os.IsNotExist(err) {
-				// エラーログ出力（削除に失敗してもプロセスは続行）
 				fmt.Printf("Failed to delete old icon: %v\n", err)
 			}
 		}
@@ -271,7 +269,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 
 		// ファイルに保存
 		if err := os.WriteFile(newIconPath, iconData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save image"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
 			return
 		}
 
@@ -282,7 +280,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 
 	// 更新するフィールドがなければエラー
 	if paramCount == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields to update"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "更新する項目がありません"})
 		return
 	}
 
@@ -301,7 +299,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	var updatedID int
 	err = app.DB.QueryRowContext(ctx, query, params...).Scan(&updatedID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update profile"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "プロフィールの更新に失敗しました"})
 		return
 	}
 
@@ -320,13 +318,13 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated profile"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新後のプロフィール取得に失敗しました"})
 		return
 	}
 
 	// アイコンURLを設定
 	if newIconPath != "" || (currentIconPath.Valid && currentIconPath.String != "") {
-		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -336,7 +334,7 @@ func (app *App) UpdateProfile(c *gin.Context) {
 func (app *App) GetProfile(c *gin.Context) {
 	profileID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールIDが不正です"})
 		return
 	}
 
@@ -356,18 +354,19 @@ func (app *App) GetProfile(c *gin.Context) {
 	)
 
 	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "プロフィールが見つかりません"})
 		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
 	// アイコンURLの設定
 	if iconPath.Valid && iconPath.String != "" {
-		profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+		// 完全なURLを返す（バックエンドのポート8080を指定）
+		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -377,7 +376,7 @@ func (app *App) GetProfile(c *gin.Context) {
 func (app *App) GetProfileIcon(c *gin.Context) {
 	profileID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid profile ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールIDが不正です"})
 		return
 	}
 
@@ -390,12 +389,12 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 	).Scan(&iconPath)
 
 	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Profile not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "プロフィールが見つかりません"})
 		return
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
@@ -404,8 +403,7 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 		// デフォルトアイコンを返す
 		defaultIconPath := "./assets/default-icon.png"
 		if _, err := os.Stat(defaultIconPath); os.IsNotExist(err) {
-			// デフォルトアイコンもない場合
-			c.JSON(http.StatusNotFound, gin.H{"error": "No icon available"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "アイコンがありません"})
 			return
 		}
 		c.File(defaultIconPath)
@@ -417,7 +415,7 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 		// ファイルが見つからない場合はデフォルトアイコンを返す
 		defaultIconPath := "./assets/default-icon.png"
 		if _, err := os.Stat(defaultIconPath); os.IsNotExist(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Icon file not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "アイコンファイルが存在しません"})
 			return
 		}
 		c.File(defaultIconPath)
@@ -430,10 +428,15 @@ func (app *App) GetProfileIcon(c *gin.Context) {
 
 // GetProfilesByUserID はユーザーIDに基づいてプロフィール一覧を取得するハンドラーです
 func (app *App) GetProfilesByUserID(c *gin.Context) {
+	// デバッグ用：リクエストの詳細をログ出力
+	fmt.Printf("GetProfilesByUserID called - User ID from params: %s\n", c.Param("userId"))
+	fmt.Printf("Authorization header: %s\n", c.GetHeader("Authorization"))
+
 	// URLからユーザーIDを取得
 	userID, err := strconv.Atoi(c.Param("userId"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		fmt.Printf("Error parsing user ID: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDが不正です"})
 		return
 	}
 
@@ -446,12 +449,12 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 	).Scan(&exists)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 
 	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "ユーザーが見つかりません"})
 		return
 	}
 
@@ -466,7 +469,7 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 	)
 	if err != nil {
 		fmt.Printf("Error querying profiles: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
 	}
 	defer rows.Close()
@@ -484,7 +487,7 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 		)
 		if err != nil {
 			fmt.Printf("Error scanning profile row: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error scanning database results"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "データベース結果のスキャンエラー"})
 			return
 		}
 
@@ -496,7 +499,7 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 		// アイコンURLの設定
 		if iconPath.Valid && iconPath.String != "" {
 			profile.IconPath = iconPath.String
-			profile.IconURL = fmt.Sprintf("/api/profiles/%d/icon", profile.ID)
+			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 		}
 
 		profiles = append(profiles, profile)
