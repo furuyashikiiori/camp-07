@@ -95,7 +95,7 @@ func (app *App) CreateLink(c *gin.Context) {
 
 // ユーザーのリンク一覧取得
 func (app *App) GetLinksByUser(c *gin.Context) {
-	userIDStr := c.Param("user_id")
+	userIDStr := c.Param("userId")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDが不正です"})

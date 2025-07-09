@@ -142,3 +142,56 @@ func (app *App) GetConnection(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"connection": conn})
 }
+
+// GetUserConnectionsは指定ユーザーの交換済みプロフィール一覧を返します
+func (app *App) GetUserConnections(c *gin.Context) {
+	userIDStr := c.Param("userId")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ユーザーIDが不正です"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// ユーザーの交換済みプロフィール情報を取得
+	query := `
+		SELECT DISTINCT
+			cp.id as connected_profile_id,
+			cp.title as connected_profile_title,
+			cu.name as connected_user_name,
+			c.connected_at
+		FROM connections c
+		JOIN profiles p ON c.profile_id = p.id
+		JOIN profiles cp ON c.connect_user_profile_id = cp.id
+		JOIN users cu ON cp.user_id = cu.id
+		WHERE p.user_id = $1
+		ORDER BY c.connected_at DESC
+	`
+
+	rows, err := app.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "データの取得に失敗しました"})
+		return
+	}
+	defer rows.Close()
+
+	var connections []models.UserConnection
+	for rows.Next() {
+		var conn models.UserConnection
+		if err := rows.Scan(
+			&conn.ConnectedProfileID,
+			&conn.ConnectedProfileTitle,
+			&conn.ConnectedUserName,
+			&conn.ConnectedAt,
+		); err == nil {
+			connections = append(connections, conn)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"connections": connections,
+		"total":       len(connections),
+	})
+}

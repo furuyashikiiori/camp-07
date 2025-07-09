@@ -21,3 +21,11 @@ type ConnectionListResponse struct {
 	Connections []Connection `json:"connections"`
 	Total       int          `json:"total"`
 }
+
+// UserConnectionはユーザーの交換済みプロフィール情報
+type UserConnection struct {
+	ConnectedProfileID    int       `json:"connected_profile_id"`
+	ConnectedProfileTitle string    `json:"connected_profile_title"`
+	ConnectedUserName     string    `json:"connected_user_name"`
+	ConnectedAt           time.Time `json:"connected_at"`
+}

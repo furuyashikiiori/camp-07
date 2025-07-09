@@ -30,13 +30,13 @@ func SetupRoutes(r *gin.Engine) {
 		links := api.Group("/links")
 		links.Use(middleware.AuthRequired())
 		{
-			links.POST("", app.CreateLink)                         // 新規リンク作成
-			links.GET("/user/:user_id", app.GetLinksByUser)        // ユーザー別リンク一覧
-			links.GET("/:id", app.GetLink)                         // リンク詳細取得
-			links.PUT("/:id", app.UpdateLink)                      // リンク更新
-			links.DELETE("/:id", app.DeleteLink)                   // リンク削除
+			links.POST("", app.CreateLink)                 // 新規リンク作成
+			links.GET("/user/:userId", app.GetLinksByUser) // ユーザー別リンク一覧
+			links.GET("/:id", app.GetLink)                 // リンク詳細取得
+			links.PUT("/:id", app.UpdateLink)              // リンク更新
+			links.DELETE("/:id", app.DeleteLink)           // リンク削除
 
-			links.GET("/types/common", app.GetCommonLinkTypes)     // 共通リンクテンプレ取得
+			links.GET("/types/common", app.GetCommonLinkTypes) // 共通リンクテンプレ取得
 		}
 
 		// 公開リンクAPI（認証不要）
@@ -46,15 +46,15 @@ func SetupRoutes(r *gin.Engine) {
 		profiles := api.Group("/profiles")
 		profiles.Use(middleware.AuthRequired())
 		{
-			profiles.POST("", app.CreateProfile)          // プロフィール作成
-			profiles.PUT("/:id", app.UpdateProfile)       // プロフィール更新
+			profiles.POST("", app.CreateProfile)    // プロフィール作成
+			profiles.PUT("/:id", app.UpdateProfile) // プロフィール更新
 
 			// プロフィールごとのオプションプロフィール一覧取得
 			profiles.GET("/:id/option-profiles", app.GetOptionProfilesByProfileID)
 		}
 
 		// 公開API（認証不要）
-		api.GET("/profiles/:id", app.GetProfile)         // プロフィール取得（公開）
+		api.GET("/profiles/:id", app.GetProfile)          // プロフィール取得（公開）
 		api.GET("/profiles/:id/icon", app.GetProfileIcon) // プロフィールアイコン取得（公開）
 
 		// option_profiles関連
@@ -70,7 +70,8 @@ func SetupRoutes(r *gin.Engine) {
 		users := api.Group("/users")
 		users.Use(middleware.AuthRequired())
 		{
-			users.GET("/:userId/profiles", app.GetProfilesByUserID) // ユーザー毎プロフィール一覧
+			users.GET("/:userId/profiles", app.GetProfilesByUserID)   // ユーザー毎プロフィール一覧
+			users.GET("/:userId/connections", app.GetUserConnections) // ユーザーの交換済みプロフィール一覧
 		}
 
 		// コネクション関連: profile_idに変更
