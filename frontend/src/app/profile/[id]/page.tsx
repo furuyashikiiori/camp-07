@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
+import Image from 'next/image';
 import { authenticatedFetch } from "@/utils/auth";
 
 type Profile = {
@@ -149,10 +150,20 @@ export default function ProfileDetail() {
         <div className={styles.profileHeader}>
           {profile.icon_url && (
             <div className={styles.iconContainer}>
-              <img
+              {/*<img
                 src={profile.icon_url}
                 alt={`${profile.display_name}のアイコン`}
                 className={styles.profileIcon}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              /> */}
+              <Image
+                src={profile.icon_url}
+                alt={`${profile.display_name}のアイコン`}
+                className={styles.profileIcon}
+                width={80}
+                height={80}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
@@ -232,11 +243,21 @@ export default function ProfileDetail() {
                 >
                   <div className={styles.linkContent}>
                     <div className={styles.linkIconContainer}>
-                      {link.image_url ? (
+                      {/* {link.image_url ? (
                         <img
                           src={link.image_url}
                           alt={`${link.title}のアイコン`}
                           className={styles.linkIcon}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }} */}
+                      {link.image_url ? (
+                        <Image
+                          src={link.image_url}
+                          alt={`${link.title}のアイコン`}
+                          className={styles.linkIcon}
+                          width={40}
+                          height={40}
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
