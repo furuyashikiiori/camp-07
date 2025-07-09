@@ -208,6 +208,23 @@
   opacity: 0.8;
 }
 
+.editButton {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin: 20px auto 10px auto;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.editButton:hover {
+  background-color: #218838;
+}
+
 @media (max-width: 768px) {
   .linksGrid {
     grid-template-columns: 1fr;
