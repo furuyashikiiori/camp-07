@@ -340,6 +340,13 @@ func (app *App) GetProfile(c *gin.Context) {
 
 	var profile models.Profile
 	var iconPath sql.NullString
+	var aka sql.NullString
+	var hometown sql.NullString
+	var birthdate sql.NullTime
+	var hobby sql.NullString
+	var comment sql.NullString
+	var title sql.NullString
+	var description sql.NullString
 
 	err = app.DB.QueryRowContext(
 		context.Background(),
@@ -349,8 +356,7 @@ func (app *App) GetProfile(c *gin.Context) {
 		profileID,
 	).Scan(
 		&profile.ID, &profile.UserID, &profile.DisplayName, &iconPath,
-		&profile.AKA, &profile.Hometown, &profile.Birthdate,
-		&profile.Hobby, &profile.Comment, &profile.Title, &profile.Description,
+		&aka, &hometown, &birthdate, &hobby, &comment, &title, &description,
 	)
 
 	if err == sql.ErrNoRows {
@@ -363,9 +369,31 @@ func (app *App) GetProfile(c *gin.Context) {
 		return
 	}
 
+	// NULL値の処理
+	if aka.Valid {
+		profile.AKA = aka.String
+	}
+	if hometown.Valid {
+		profile.Hometown = hometown.String
+	}
+	if birthdate.Valid {
+		profile.Birthdate = birthdate.Time
+	}
+	if hobby.Valid {
+		profile.Hobby = hobby.String
+	}
+	if comment.Valid {
+		profile.Comment = comment.String
+	}
+	if title.Valid {
+		profile.Title = title.String
+	}
+	if description.Valid {
+		profile.Description = description.String
+	}
+
 	// アイコンURLの設定
 	if iconPath.Valid && iconPath.String != "" {
-		// 完全なURLを返す（バックエンドのポート8080を指定）
 		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
 	}
 
