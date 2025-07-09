@@ -6,6 +6,20 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from 'next/image';
 import { authenticatedFetch } from "@/utils/auth";
+import { useSession } from "next-auth/react";
+//import NextAuth from "next-auth"
+
+declare module "next-auth" {
+  interface User {
+    id: string
+  }
+  
+  interface Session {
+    user: User & {
+      id: string
+    }
+  }
+}
 
 type Profile = {
   id: number;
@@ -49,6 +63,8 @@ export default function ProfileDetail() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -292,6 +308,15 @@ export default function ProfileDetail() {
             </div>
           </div>
         )}
+        
+        {session?.user?.id === String(profile.user_id) && (
+        <button
+          className={styles.editButton}
+          onClick={() => router.push(`/profile/${params.id}/edit`)}
+        >
+          ✎ プロフィールを編集
+        </button>
+      )}
 
         <button className={styles.backButton} onClick={() => router.back()}>
           戻る
