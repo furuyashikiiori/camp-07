@@ -170,8 +170,7 @@ export default function NewProfilePage() {
       if (!response.ok) {
         const error = await response.json();
         alert(
-          `プロフィールの登録に失敗しました: ${
-            error.error || "エラーが発生しました"
+          `プロフィールの登録に失敗しました: ${error.error || "エラーが発生しました"
           }`
         );
         return;
@@ -184,7 +183,7 @@ export default function NewProfilePage() {
       await saveOptionalFields(createdProfile.id);
 
       // SNSリンクと任意のリンクを保存
-      await saveLinks(createdProfile.id);
+      await saveLinks(createdProfile.id, user);
 
       alert("プロフィールを登録しました！");
       // プロフィール詳細ページまたはマイページに遷移
@@ -218,7 +217,7 @@ export default function NewProfilePage() {
   };
 
   // SNSリンクと任意のリンクを保存
-  const saveLinks = async (profileId: number) => {
+  const saveLinks = async (profileId: number, user: any) => {
     // バックエンドからプリセットアイコン情報を取得
     let presetIcons: Record<string, string> = {};
     try {
@@ -248,6 +247,8 @@ export default function NewProfilePage() {
       };
     }
 
+    console.log("プリセットアイコン:", presetIcons);
+
     // SNSリンクを保存
     const snsLinks = [
       { title: "Twitter", url: formData.sns.twitter },
@@ -259,18 +260,28 @@ export default function NewProfilePage() {
       if (link.url.trim()) {
         try {
           const snsLinkData = {
+            user_id: user.id,
             profile_id: profileId,
             title: link.title,
             url: link.url,
             image_url: presetIcons[link.title],
           };
 
-          await authenticatedFetch("/api/links", {
+          console.log("SNSリンク保存データ:", snsLinkData);
+          const response = await authenticatedFetch("/api/links", {
             method: "POST",
             body: JSON.stringify(snsLinkData),
           });
+
+          if (!response.ok) {
+            const error = await response.json();
+            console.error("SNSリンク保存エラー:", error);
+          } else {
+            console.log("SNSリンク保存成功:", link.title);
+          }
         } catch (error) {
           console.error("SNSリンクの保存エラー:", error);
+          // console.error("SNSリンクの保存エラー詳細:", error.message);
         }
       }
     }
@@ -287,6 +298,7 @@ export default function NewProfilePage() {
           }
 
           const linkData = {
+            user_id: user.id,
             profile_id: profileId,
             title: link.label,
             url: link.url,
@@ -294,12 +306,21 @@ export default function NewProfilePage() {
             image_url: imageUrl,
           };
 
-          await authenticatedFetch("/api/links", {
+          console.log("任意リンク保存データ:", linkData);
+          const response = await authenticatedFetch("/api/links", {
             method: "POST",
             body: JSON.stringify(linkData),
           });
+
+          if (!response.ok) {
+            const error = await response.json();
+            console.error("任意リンク保存エラー:", error);
+          } else {
+            console.log("任意リンク保存成功:", link.label);
+          }
         } catch (error) {
           console.error("任意リンクの保存エラー:", error);
+          // console.error("任意リンクの保存エラー詳細:", error.message);
         }
       }
     }

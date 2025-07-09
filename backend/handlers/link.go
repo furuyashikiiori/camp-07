@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"database/sql"
+
+	// "fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -76,6 +78,9 @@ func (app *App) CreateLink(c *gin.Context) {
 	).Scan(&linkID)
 
 	if err != nil {
+		// デバッグログ追加
+		// fmt.Printf("リンク作成エラー: %v\n", err)
+		// fmt.Printf("リクエストデータ: %+v\n", req)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "リンクの作成に失敗しました"})
 		return
 	}
