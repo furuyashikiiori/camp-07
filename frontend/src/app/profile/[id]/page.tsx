@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from 'next/image';
 import { authenticatedFetch } from "@/utils/auth";
-import { useSession } from "next-auth/react";
+//import { useSession } from "next-auth/react";
 //import NextAuth from "next-auth"
 
 declare module "next-auth" {
@@ -63,7 +63,7 @@ export default function ProfileDetail() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { data: session } = useSession();
+  //const { data: session } = useSession();
 
 
   useEffect(() => {
@@ -309,14 +309,14 @@ export default function ProfileDetail() {
           </div>
         )}
         
-        {session?.user?.id === String(profile.user_id) && (
-        <button
-          className={styles.editButton}
-          onClick={() => router.push(`/profile/${params.id}/edit`)}
-        >
-          ✎ プロフィールを編集
-        </button>
-      )}
+        {true && (
+          <button
+            className={styles.editButton}
+            onClick={() => router.push(`/profile/${params.id}/edit`)}
+          >
+            ✎ プロフィールを編集
+          </button>
+        )}
 
         <button className={styles.backButton} onClick={() => router.back()}>
           戻る
