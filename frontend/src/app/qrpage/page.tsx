@@ -23,6 +23,7 @@ export default function QRPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [exchangedMessage, setExchangedMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -53,6 +54,14 @@ export default function QRPage() {
     };
 
     fetchProfiles();
+    
+    // URLパラメータから交換成功メッセージを確認
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('exchanged') === 'true') {
+      setExchangedMessage('プロフィール交換が完了しました！');
+      // URLパラメータを削除
+      window.history.replaceState({}, '', '/qrpage');
+    }
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -69,7 +78,15 @@ export default function QRPage() {
     try {
       const url = new URL(result);
       if (url.origin === window.location.origin) {
-        router.push(url.pathname);
+        // プロフィールページのURLかチェック
+        const profileMatch = url.pathname.match(/^\/profile\/(\d+)$/);
+        if (profileMatch) {
+          const profileId = profileMatch[1];
+          // 交換ページに遷移
+          router.push(`/exchange?profileId=${profileId}`);
+        } else {
+          router.push(url.pathname);
+        }
       } else {
         window.open(result, '_blank');
       }
@@ -91,6 +108,15 @@ export default function QRPage() {
         </Link>
 
         <h1 className={styles.title}>QRコードページ</h1>
+
+        {exchangedMessage && (
+          <div className={styles.successMessage}>
+            {exchangedMessage}
+            <button onClick={() => setExchangedMessage(null)} className={styles.closeButton}>
+              ×
+            </button>
+          </div>
+        )}
 
         <div className={styles.card}>
           {loading ? (
