@@ -56,7 +56,7 @@ export default function ExchangePage() {
           throw new Error('相手のプロフィール情報の取得に失敗しました');
         }
         const scannedProfileData = await scannedProfileResponse.json();
-        setScannedProfile(scannedProfileData.profile);
+        setScannedProfile(scannedProfileData);
 
         // 最初のプロフィールをデフォルトで選択
         if (profiles.length > 0) {
