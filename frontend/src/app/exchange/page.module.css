@@ -1,0 +1,159 @@
+.container {
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+.main {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 2rem;
+}
+
+.exchangeSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.profileSection {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fafafa;
+}
+
+.profileSection h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.profileCard {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.profileCard h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.profileCard p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.profileSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.profileOption input[type="radio"] {
+  margin-top: 5px;
+}
+
+.profileLabel {
+  flex: 1;
+  cursor: pointer;
+}
+
+.profileLabel .profileCard {
+  transition: border-color 0.2s ease;
+}
+
+.profileLabel .profileCard:hover {
+  border-color: #007bff;
+}
+
+.profileOption input[type="radio"]:checked + .profileLabel .profileCard {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+}
+
+.exchangeAction {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.exchangeButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.exchangeButton:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.exchangeButton:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .exchangeSection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .container {
+    padding: 10px;
+  }
+  
+  .main {
+    padding: 20px;
+  }
+}
