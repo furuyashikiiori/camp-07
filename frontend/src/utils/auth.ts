@@ -53,8 +53,13 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
 
   console.log('Making authenticated request to:', url);
   console.log('With token:', token ? 'Present' : 'Missing');
-
-  return fetch(url, {
+  
+  // 相対パスの場合、バックエンドのベースURLを追加
+  const apiUrl = url.startsWith('/api') 
+    ? `http://localhost:8080${url}` 
+    : url;
+    
+  return fetch(apiUrl, {
     ...options,
     headers,
   });

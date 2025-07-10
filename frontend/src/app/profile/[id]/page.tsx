@@ -5,9 +5,7 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import Image from 'next/image';
-import { authenticatedFetch } from "@/utils/auth";
-//import { useSession } from "next-auth/react";
-//import NextAuth from "next-auth"
+import { authenticatedFetch, getUser } from "@/utils/auth";
 
 declare module "next-auth" {
   interface User {
@@ -63,8 +61,31 @@ export default function ProfileDetail() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  //const { data: session } = useSession();
-
+  // プロフィール所有者かどうかを判定する状態
+  const [isOwner, setIsOwner] = useState<boolean>(false);
+  // フレンド追加・編集のための状態
+  const [friendForm, setFriendForm] = useState<{
+    isOpen: boolean;
+    eventName: string;
+    eventDate: string;
+    memo: string;
+    isSubmitting: boolean;
+    existingConnectionId: number | null; // 既存のコネクションIDを保存
+  }>({
+    isOpen: false,
+    eventName: "",
+    eventDate: "",
+    memo: "",
+    isSubmitting: false,
+    existingConnectionId: null,
+  });
+  const [addFriendResult, setAddFriendResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  const [userProfiles, setUserProfiles] = useState<Profile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,8 +99,6 @@ export default function ProfileDetail() {
           throw new Error("プロフィールの取得に失敗しました");
         }
         const profileData = await profileResponse.json();
-        // console.log("Profile data received:", profileData); // デバッグログを追加
-        // console.log("Profile icon_url:", profileData.icon_url); // アイコンURLを個別にログ
 
         // アイコンURLが相対パスの場合、バックエンドの完全URLに変換
         if (profileData.icon_url && profileData.icon_url.startsWith("/api/")) {
@@ -90,10 +109,67 @@ export default function ProfileDetail() {
 
         if (optionResponse.ok) {
           const optionData = await optionResponse.json();
-          // console.log("Option profiles data:", optionData);
           setOptionProfiles(optionData.option_profiles || []);
         } else {
           console.log("Option profiles response error:", optionResponse.status);
+        }
+
+        // ログインユーザーのプロフィール取得
+        const user = getUser();
+        
+        // プロフィールの所有者かどうかを判定
+        if (user && profileData.user_id === Number(user.id)) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
+        }
+        if (user) {
+          try {
+            const userProfilesResponse = await authenticatedFetch(
+              `/api/users/${user.id}/profiles`
+            );
+            if (userProfilesResponse.ok) {
+              const userProfilesData = await userProfilesResponse.json();
+              setUserProfiles(userProfilesData.profiles || []);
+              // 最初のプロフィールをデフォルト選択
+              if (userProfilesData.profiles && userProfilesData.profiles.length > 0) {
+                const firstProfileId = userProfilesData.profiles[0].id;
+                setSelectedProfileId(firstProfileId);
+                
+                // 既存のコネクション情報を取得
+                if (!isOwner && profileData.id) {
+                  try {
+                    const connectionsResponse = await authenticatedFetch(
+                      `/api/connections?profile_id=${firstProfileId}`
+                    );
+                    
+                    if (connectionsResponse.ok) {
+                      const connectionsData = await connectionsResponse.json();
+                      // 表示中のプロフィールとのコネクションを検索
+                      const existingConnection = connectionsData.connections?.find(
+                        (conn: any) => conn.connect_user_profile_id === profileData.id
+                      );
+                      
+                      if (existingConnection) {
+                        // 既存のコネクション情報をフォームに設定
+                        setFriendForm(prev => ({
+                          ...prev,
+                          eventName: existingConnection.event_name || "",
+                          eventDate: existingConnection.event_date || "",
+                          memo: existingConnection.memo || "",
+                          existingConnectionId: existingConnection.id
+                        }));
+                      }
+                    }
+                  } catch (err) {
+                    console.error("コネクション情報取得エラー:", err);
+                  }
+                }
+              }
+            }
+          } catch (profilesError) {
+            console.error("ユーザープロフィール取得エラー:", profilesError);
+          }
         }
 
         // プロフィールのリンクを取得
@@ -122,6 +198,128 @@ export default function ProfileDetail() {
 
     fetchData();
   }, [params.id]);
+
+  // フレンド追加・編集フォームの表示・非表示切り替え
+  const toggleFriendForm = () => {
+    setFriendForm((prev) => ({
+      ...prev,
+      isOpen: !prev.isOpen,
+      // フォームを閉じるときだけリセット、開くときは既存値を保持
+      eventName: prev.isOpen ? "" : prev.eventName,
+      eventDate: prev.isOpen ? "" : prev.eventDate, 
+      memo: prev.isOpen ? "" : prev.memo,
+    }));
+    setAddFriendResult(null);
+  };
+
+  // フレンド追加・編集処理
+  const handleAddFriend = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!profile || !selectedProfileId) {
+      setAddFriendResult({
+        success: false,
+        message: "プロフィールが選択されていません",
+      });
+      return;
+    }
+
+    setFriendForm((prev) => ({ ...prev, isSubmitting: true }));
+    setAddFriendResult(null);
+
+    try {
+      let response;
+      
+      // 既存のコネクションが存在する場合は更新、そうでなければ新規作成
+      if (friendForm.existingConnectionId) {
+        // 既存のコネクションを更新
+        response = await authenticatedFetch(`/api/connections/${friendForm.existingConnectionId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            event_name: friendForm.eventName,
+            event_date: friendForm.eventDate,
+            memo: friendForm.memo,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error("フレンド情報の更新に失敗しました");
+        }
+      } else {
+        // 自分から相手へのコネクションを作成
+        const myToFriendResponse = await authenticatedFetch("/api/connections", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            profile_id: selectedProfileId,
+            connect_user_profile_id: profile.id,
+            event_name: friendForm.eventName,
+            event_date: friendForm.eventDate,
+            memo: friendForm.memo,
+          }),
+        });
+
+        // 相手から自分へのコネクションを作成
+        // （相互関係を作成する場合のみ）
+        const friendToMyResponse = await authenticatedFetch("/api/connections", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            profile_id: profile.id,
+            connect_user_profile_id: selectedProfileId,
+            event_name: friendForm.eventName,
+            event_date: friendForm.eventDate,
+            memo: friendForm.memo,
+          }),
+        });
+
+        if (!myToFriendResponse.ok || !friendToMyResponse.ok) {
+          throw new Error("フレンド追加に失敗しました");
+        }
+        
+        // 新規作成後、IDを取得して状態を更新
+        if (myToFriendResponse.ok) {
+          const data = await myToFriendResponse.json();
+          if (data?.connection?.id) {
+            setFriendForm(prev => ({
+              ...prev,
+              existingConnectionId: data.connection.id
+            }));
+          }
+        }
+      }
+
+      setAddFriendResult({
+        success: true,
+        message: friendForm.existingConnectionId 
+          ? "フレンド情報を更新しました！" 
+          : "フレンドを追加しました！",
+      });
+
+      // フォームを閉じる
+      setFriendForm((prev) => ({
+        ...prev,
+        isOpen: false,
+      }));
+
+    } catch (err) {
+      setAddFriendResult({
+        success: false,
+        message: err instanceof Error ? err.message : "エラーが発生しました",
+      });
+    } finally {
+      setFriendForm((prev) => ({ ...prev, isSubmitting: false }));
+    }
+  };
+
+  // 関数を削除
 
   if (loading) {
     return (
@@ -309,7 +507,81 @@ export default function ProfileDetail() {
           </div>
         )}
         
-        {true && (
+        {/* フレンド情報編集ボタン - 自分自身のプロフィールではない場合のみ表示 */}
+        {userProfiles.length > 0 && !isOwner && (
+          <div className={styles.friendSection}>
+            {addFriendResult && (
+              <div className={`${styles.resultMessage} ${addFriendResult.success ? styles.success : styles.error}`}>
+                {addFriendResult.message}
+              </div>
+            )}
+            
+            {!friendForm.isOpen ? (
+              <button
+                className={styles.addFriendButton}
+                onClick={toggleFriendForm}
+              >
+                {friendForm.existingConnectionId ? 'フレンド情報編集' : 'フレンド追加'}
+              </button>
+            ) : (
+              <form onSubmit={handleAddFriend} className={styles.friendForm}>
+                <h3>{friendForm.existingConnectionId ? 'フレンド情報を編集' : 'フレンド追加'}</h3>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="eventName">イベント名:</label>
+                  <input 
+                    type="text"
+                    id="eventName"
+                    value={friendForm.eventName}
+                    onChange={(e) => setFriendForm(prev => ({ ...prev, eventName: e.target.value }))}
+                    placeholder="例: 技術交流会"
+                  />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="eventDate">イベント日付:</label>
+                  <input 
+                    type="date"
+                    id="eventDate"
+                    value={friendForm.eventDate}
+                    onChange={(e) => setFriendForm(prev => ({ ...prev, eventDate: e.target.value }))}
+                    style={{ color: '#0056b3' }}
+                  />
+                </div>
+                
+                <div className={styles.formGroup}>
+                  <label htmlFor="memo">メモ:</label>
+                  <textarea
+                    id="memo"
+                    value={friendForm.memo}
+                    onChange={(e) => setFriendForm(prev => ({ ...prev, memo: e.target.value }))}
+                    placeholder="例: エンジニアのAさん"
+                    rows={3}
+                  />
+                </div>
+                
+                <div className={styles.formActions}>
+                  <button 
+                    type="button" 
+                    className={styles.cancelButton}
+                    onClick={toggleFriendForm}
+                  >
+                    キャンセル
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={styles.submitButton}
+                    disabled={friendForm.isSubmitting || !selectedProfileId}
+                  >
+                    {friendForm.isSubmitting ? '更新中...' : (friendForm.existingConnectionId ? '編集を完了する' : 'フレンドに追加')}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
+        
+        {isOwner && (
           <button
             className={styles.editButton}
             onClick={() => router.push(`/profile/${params.id}/edit`)}
