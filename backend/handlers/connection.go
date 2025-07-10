@@ -36,9 +36,9 @@ func (app *App) CreateConnection(c *gin.Context) {
 	var id int
 	now := time.Now()
 	err = app.DB.QueryRowContext(ctx,
-		`INSERT INTO connections (profile_id, connect_user_profile_id, connected_at)
-         VALUES ($1, $2, $3) RETURNING id`,
-		req.ProfileID, req.ConnectUsersProfileID, now,
+		`INSERT INTO connections (profile_id, connect_user_profile_id, connected_at, event_name, event_date, memo)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+		req.ProfileID, req.ConnectUsersProfileID, now, req.EventName, req.EventDate, req.Memo,
 	).Scan(&id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "登録に失敗しました"})
@@ -51,6 +51,9 @@ func (app *App) CreateConnection(c *gin.Context) {
 			ProfileID:             req.ProfileID,
 			ConnectUsersProfileID: req.ConnectUsersProfileID,
 			ConnectedAt:           now,
+			EventName:             req.EventName,
+			EventDate:             req.EventDate,
+			Memo:                  req.Memo,
 		},
 	})
 }
@@ -68,7 +71,7 @@ func (app *App) ListConnections(c *gin.Context) {
 	defer cancel()
 
 	rows, err := app.DB.QueryContext(ctx,
-		`SELECT id, profile_id, connect_user_profile_id, connected_at
+		`SELECT id, profile_id, connect_user_profile_id, connected_at, event_name, event_date, memo
          FROM connections WHERE profile_id = $1 ORDER BY connected_at DESC`,
 		profileID,
 	)
@@ -83,6 +86,7 @@ func (app *App) ListConnections(c *gin.Context) {
 		var conn models.Connection
 		if err := rows.Scan(
 			&conn.ID, &conn.ProfileID, &conn.ConnectUsersProfileID, &conn.ConnectedAt,
+			&conn.EventName, &conn.EventDate, &conn.Memo,
 		); err == nil {
 			list = append(list, conn)
 		}
@@ -134,8 +138,10 @@ func (app *App) GetConnection(c *gin.Context) {
 	defer cancel()
 	var conn models.Connection
 	err = app.DB.QueryRowContext(ctx,
-		`SELECT id, profile_id, connect_user_profile_id, connected_at FROM connections WHERE id=$1`, id).
-		Scan(&conn.ID, &conn.ProfileID, &conn.ConnectUsersProfileID, &conn.ConnectedAt)
+		`SELECT id, profile_id, connect_user_profile_id, connected_at, event_name, event_date, memo 
+		 FROM connections WHERE id=$1`, id).
+		Scan(&conn.ID, &conn.ProfileID, &conn.ConnectUsersProfileID, &conn.ConnectedAt,
+			&conn.EventName, &conn.EventDate, &conn.Memo)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "該当データがありません"})
 		return
@@ -161,7 +167,10 @@ func (app *App) GetUserConnections(c *gin.Context) {
 			cp.id as connected_profile_id,
 			cp.title as connected_profile_title,
 			cu.name as connected_user_name,
-			c.connected_at
+			c.connected_at,
+			c.event_name,
+			c.event_date,
+			c.memo
 		FROM connections c
 		JOIN profiles p ON c.profile_id = p.id
 		JOIN profiles cp ON c.connect_user_profile_id = cp.id
@@ -185,6 +194,9 @@ func (app *App) GetUserConnections(c *gin.Context) {
 			&conn.ConnectedProfileTitle,
 			&conn.ConnectedUserName,
 			&conn.ConnectedAt,
+			&conn.EventName,
+			&conn.EventDate,
+			&conn.Memo,
 		); err == nil {
 			connections = append(connections, conn)
 		}
@@ -193,5 +205,50 @@ func (app *App) GetUserConnections(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"connections": connections,
 		"total":       len(connections),
+	})
+}
+
+// UpdateConnectionは指定IDのコネクション情報を更新します
+func (app *App) UpdateConnection(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "IDが不正です"})
+		return
+	}
+
+	var req struct {
+		EventName string `json:"event_name"`
+		EventDate string `json:"event_date"`
+		Memo      string `json:"memo"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "リクエスト形式が不正です"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// コネクションを更新
+	result, err := app.DB.ExecContext(ctx,
+		`UPDATE connections SET event_name = $1, event_date = $2, memo = $3 WHERE id = $4`,
+		req.EventName, req.EventDate, req.Memo, id,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新に失敗しました"})
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "該当データがありません"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result":  "success",
+		"message": "コネクション情報を更新しました",
 	})
 }

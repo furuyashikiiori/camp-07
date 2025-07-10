@@ -72,6 +72,13 @@ export default function ExchangePage() {
     fetchData();
   }, [router, scannedProfileId]);
 
+  // イベント情報の状態
+  const [eventInfo, setEventInfo] = useState({
+    eventName: '',
+    eventDate: '',
+    memo: ''
+  });
+
   const handleExchange = async () => {
     if (!selectedProfileId || !scannedProfile) return;
 
@@ -88,6 +95,9 @@ export default function ExchangePage() {
         body: JSON.stringify({
           profile_id: selectedProfileId,
           connect_user_profile_id: scannedProfile.id,
+          event_name: eventInfo.eventName,
+          event_date: eventInfo.eventDate,
+          memo: eventInfo.memo
         }),
       });
 
@@ -99,6 +109,9 @@ export default function ExchangePage() {
         body: JSON.stringify({
           profile_id: scannedProfile.id,
           connect_user_profile_id: selectedProfileId,
+          event_name: eventInfo.eventName,
+          event_date: eventInfo.eventDate,
+          memo: eventInfo.memo
         }),
       });
 
@@ -191,6 +204,43 @@ export default function ExchangePage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* イベント情報入力セクション */}
+        <div className={styles.eventInfoSection}>
+          <h2>イベント情報（任意）</h2>
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="eventName">イベント名:</label>
+            <input
+              type="text"
+              id="eventName"
+              value={eventInfo.eventName}
+              onChange={(e) => setEventInfo(prev => ({ ...prev, eventName: e.target.value }))}
+              placeholder="例: 技術交流会"
+            />
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="eventDate">イベント日付:</label>
+            <input
+              type="date"
+              id="eventDate"
+              value={eventInfo.eventDate}
+              onChange={(e) => setEventInfo(prev => ({ ...prev, eventDate: e.target.value }))}
+            />
+          </div>
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="memo">メモ:</label>
+            <textarea
+              id="memo"
+              value={eventInfo.memo}
+              onChange={(e) => setEventInfo(prev => ({ ...prev, memo: e.target.value }))}
+              placeholder="例: エンジニアのAさん"
+              rows={3}
+            />
           </div>
         </div>
 

@@ -81,6 +81,7 @@ func SetupRoutes(r *gin.Engine) {
 			connections.GET("", app.GetConnections)          // コネクション一覧取得（?profile_id=xxx）
 			connections.DELETE("/:id", app.DeleteConnection) // コネクション削除
 			connections.GET("/:id", app.GetConnection)       // コネクション詳細取得
+			connections.PUT("/:id", app.UpdateConnection)    // コネクション更新
 		}
 	}
 }

@@ -107,6 +107,50 @@
   background-color: #f0f8ff;
 }
 
+.eventInfoSection {
+  margin-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+}
+
+.eventInfoSection h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+/* カレンダーアイコンの色を変更 */
+.formGroup input[type="date"] {
+  color-scheme: light;
+  color: #333333;
+}
+
+.formGroup textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
 .exchangeAction {
   text-align: center;
   padding-top: 20px;

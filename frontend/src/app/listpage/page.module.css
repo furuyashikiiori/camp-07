@@ -137,3 +137,32 @@
   text-align: center;
   margin-bottom: 20px;
 }
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dotted #ccc;
+}
+
+.eventDetail {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.eventIcon {
+  margin-right: 6px;
+  color: #007bff;
+}
+
+.memo {
+  font-style: italic;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: #777;
+  padding-left: 18px;
+}

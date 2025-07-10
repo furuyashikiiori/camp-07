@@ -15,6 +15,9 @@ type Contact = {
   name: string;
   profileTitle: string;
   exchangeDate: string;
+  eventName?: string;
+  eventDate?: string;
+  memo?: string;
 };
 
 export default function ListPage() {
@@ -48,6 +51,9 @@ export default function ListPage() {
           name: conn.connected_user_name,
           profileTitle: conn.connected_profile_title,
           exchangeDate: conn.connected_at.split('T')[0], // 日付部分のみ抽出
+          eventName: conn.event_name || '',
+          eventDate: conn.event_date || '',
+          memo: conn.memo || '',
         }));
         
         setContacts(contactList);
@@ -155,6 +161,29 @@ export default function ListPage() {
                           <div className={styles.contactInfo}>
                             <span className={styles.userName}>{p.name}</span>
                             <span className={styles.profileTitle}>{p.profileTitle}</span>
+                            
+                            {/* イベント情報があれば表示 */}
+                            {(p.eventName || p.eventDate || p.memo) && (
+                              <div className={styles.eventInfo}>
+                                {p.eventName && (
+                                  <div className={styles.eventDetail}>
+                                    <span className={styles.eventIcon}>📌</span>
+                                    <span>{p.eventName}</span>
+                                  </div>
+                                )}
+                                {p.eventDate && (
+                                  <div className={styles.eventDetail}>
+                                    <span className={styles.eventIcon}>📅</span>
+                                    <span>{p.eventDate}</span>
+                                  </div>
+                                )}
+                                {p.memo && (
+                                  <div className={styles.memo}>
+                                    {p.memo}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}
