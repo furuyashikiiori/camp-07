@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from 'next/image';
 import { authenticatedFetch, getUser } from "@/utils/auth";
 
+
 // declare module "next-auth" {
 //   interface User {
 //     id: string
