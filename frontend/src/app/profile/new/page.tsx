@@ -8,9 +8,10 @@ import { getUser, getToken, authenticatedFetch } from "@/utils/auth";
 type OptionalField = { label: string; value: string };
 
 type PresetLinkType = {
-  id: string;
-  name: string;
-  icon_url: string;
+  name: string;        // Goの Name フィールドに対応
+  icon_url: string;    // Goの IconURL フィールドに対応  
+  base_url: string;    // Goの BaseURL フィールドに対応
+  placeholder: string; // Goの Placeholder フィールドに対応
 };
 
 type OtherLink = {
@@ -68,9 +69,9 @@ function LinkSelectionModal({
         <div className={styles.modalContent}>
           <div className={styles.presetSection}>
             <div className={styles.presetGrid}>
-              {presetTypes.map((preset) => (
+              {presetTypes.map((preset, index) => (
                 <button
-                  key={preset.id}
+                  key={preset.name || `preset-${index}`} // name を key として使用
                   onClick={() => onSelectPreset(preset)}
                   className={styles.presetButton}
                 >
