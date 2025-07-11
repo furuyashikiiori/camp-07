@@ -67,7 +67,6 @@ function LinkSelectionModal({
         
         <div className={styles.modalContent}>
           <div className={styles.presetSection}>
-            <h4>プリセットリンク</h4>
             <div className={styles.presetGrid}>
               {presetTypes.map((preset) => (
                 <button

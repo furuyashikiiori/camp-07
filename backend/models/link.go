@@ -67,4 +67,34 @@ var CommonLinkTypes = []LinkType{
 		BaseURL:     "https://instagram.com/",
 		Placeholder: "username",
 	},
+	{
+		Name:        "YouTube",
+		IconURL:     "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtube.svg",
+		BaseURL:     "https://youtube.com/@",
+		Placeholder: "username",
+	},
+	{
+		Name:        "LinkedIn",
+		IconURL:     "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linkedin.svg",
+		BaseURL:     "https://linkedin.com/in/",
+		Placeholder: "username",
+	},
+	{
+		Name:        "TikTok",
+		IconURL:     "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tiktok.svg",
+		BaseURL:     "https://tiktok.com/@",
+		Placeholder: "username",
+	},
+	{
+		Name:        "Facebook",
+		IconURL:     "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg",
+		BaseURL:     "https://facebook.com/",
+		Placeholder: "username",
+	},
+	{
+		Name:        "Email",
+		IconURL:     "https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gmail.svg",
+		BaseURL:     "mailto:",
+		Placeholder: "email@example.com",
+	},
 }
