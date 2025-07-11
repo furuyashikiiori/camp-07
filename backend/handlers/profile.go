@@ -541,3 +541,67 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// DeleteProfile はプロフィールを削除するハンドラーです（本人のもののみ削除可）
+func (app *App) DeleteProfile(c *gin.Context) {
+	profileID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "プロフィールIDが不正です"})
+		return
+	}
+
+	// ミドルウェアでセットされたユーザーIDを取得
+	userIDAny, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "認証情報がありません"})
+		return
+	}
+	userID, ok := userIDAny.(int)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "認証情報が不正です"})
+		return
+	}
+
+	// プロフィールが本人のものか確認 & アイコンパス取得
+	var dbUserID int
+	var iconPath sql.NullString
+	err = app.DB.QueryRowContext(
+		context.Background(),
+		"SELECT user_id, icon_path FROM profiles WHERE id = $1",
+		profileID,
+	).Scan(&dbUserID, &iconPath)
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "プロフィールが見つかりません"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "DBエラー"})
+		return
+	}
+
+	if dbUserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "自分のプロフィールのみ削除できます"})
+		return
+	}
+
+	// DBから削除
+	_, err = app.DB.ExecContext(
+		context.Background(),
+		"DELETE FROM profiles WHERE id = $1",
+		profileID,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "プロフィールの削除に失敗しました"})
+		return
+	}
+
+	// アイコン画像を削除
+	if iconPath.Valid && iconPath.String != "" {
+		if err := os.Remove(iconPath.String); err != nil && !os.IsNotExist(err) {
+			// ログのみ、エラー応答は返さない
+			fmt.Printf("Failed to delete profile icon: %v\n", err)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "プロフィールを削除しました"})
+}
