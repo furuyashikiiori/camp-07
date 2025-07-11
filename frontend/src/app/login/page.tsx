@@ -36,8 +36,8 @@ export default function LoginPage() {
         console.log('Token saved successfully');
       }
       router.replace('/');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '予期しないエラーが発生しました');
     }
   };
 

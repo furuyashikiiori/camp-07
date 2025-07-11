@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getUser, getToken } from '@/utils/auth';
 
@@ -17,8 +17,8 @@ export default function AuthGuard({
   const router = useRouter();
   const pathname = usePathname();
 
-  // 認証不要ページ
-  const publicPaths = ['/auth', '/login', '/signup'];
+  // 認証不要ページ（useMemoで固定）
+  const publicPaths = useMemo(() => ['/auth', '/login', '/signup'], []);
 
   useEffect(() => {
     const user = getUser();
@@ -37,7 +37,7 @@ export default function AuthGuard({
       console.log('AuthGuard - User exists on public page, redirecting to home');
       router.replace('/');
     }
-  }, [pathname, router]);
+  }, [pathname, router, publicPaths]);
 
   return <>{children}</>;
 }

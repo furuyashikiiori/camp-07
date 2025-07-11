@@ -333,7 +333,7 @@ export default function ProfileEditPage() {
         await authenticatedFetch(`/api/links/profile/${params.id}/${snsType}`, {
           method: 'DELETE',
         });
-      } catch (error) {
+      } catch {
         // 削除エラーは無視
       }
     }
@@ -345,7 +345,7 @@ export default function ProfileEditPage() {
       if (response.ok) {
         const commonTypes = await response.json();
         presetIcons = commonTypes.reduce(
-          (acc: Record<string, string>, type: any) => {
+          (acc: Record<string, string>, type: { name: string; icon_url: string }) => {
             const key = type.name.includes('/') ? type.name.split('/')[0] : type.name;
             acc[key] = type.icon_url;
             return acc;

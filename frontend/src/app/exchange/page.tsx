@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { getUser, authenticatedFetch } from "@/utils/auth";
-// import { getApiBaseUrl } from "@/utils/config";
 
 type Profile = {
   id: number;
@@ -15,7 +14,7 @@ type Profile = {
   description?: string;
 };
 
-export default function ExchangePage() {
+function ExchangePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const scannedProfileId = searchParams.get("profileId");
@@ -81,11 +80,10 @@ export default function ExchangePage() {
               );
               
               if (connectionsResponse.ok) {
-                const connectionsData = await connectionsResponse.json();
-                // 表示中のプロフィールとのコネクションを検索
-                const existingConnection = connectionsData.connections?.find(
-                  (conn: any) => conn.connect_user_profile_id === scannedProfileData.id
-                );
+                const connectionsData = await connectionsResponse.json();              // 表示中のプロフィールとのコネクションを検索
+              const existingConnection = connectionsData.connections?.find(
+                (conn: { connect_user_profile_id: number }) => conn.connect_user_profile_id === scannedProfileData.id
+              );
                 
                 if (existingConnection) {
                   // 既存のコネクション情報をフォームに設定
@@ -213,7 +211,7 @@ export default function ExchangePage() {
         const connectionsData = await connectionsResponse.json();
         // 表示中のプロフィールとのコネクションを検索
         const existingConnection = connectionsData.connections?.find(
-          (conn: any) => conn.connect_user_profile_id === scannedProfile.id
+          (conn: { connect_user_profile_id: number }) => conn.connect_user_profile_id === scannedProfile.id
         );
         
         if (existingConnection) {
@@ -386,5 +384,13 @@ export default function ExchangePage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function ExchangePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ExchangePageContent />
+    </Suspense>
   );
 }

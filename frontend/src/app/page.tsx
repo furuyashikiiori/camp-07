@@ -22,7 +22,7 @@ export default function HomePage() {
 
 
       // 5秒後にボタン表示を開始
-      const timeout = setTimeout(() => {
+      setTimeout(() => {
         setShowButtons(true);
       }, 2500);
 

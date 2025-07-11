@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/library';
 import styles from './QRScanner.module.css';
 
@@ -16,19 +16,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ isOpen, onClose, onScan }) => {
   const [isScanning, setIsScanning] = useState(false);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      startScanning();
-    } else {
-      stopScanning();
-    }
-
-    return () => {
-      stopScanning();
-    };
-  }, [isOpen]);
-
-  const startScanning = async () => {
+  const startScanning = useCallback(async () => {
     try {
       setError(null);
       setIsScanning(true);
@@ -70,7 +58,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ isOpen, onClose, onScan }) => {
       setError(err instanceof Error ? err.message : 'カメラの起動に失敗しました');
       setIsScanning(false);
     }
-  };
+  }, [onScan, onClose]);
 
   const stopScanning = () => {
     if (readerRef.current) {
@@ -78,6 +66,18 @@ const QRScanner: React.FC<QRScannerProps> = ({ isOpen, onClose, onScan }) => {
     }
     setIsScanning(false);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      startScanning();
+    } else {
+      stopScanning();
+    }
+
+    return () => {
+      stopScanning();
+    };
+  }, [isOpen, startScanning]);
 
   const handleClose = () => {
     stopScanning();

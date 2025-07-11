@@ -46,7 +46,15 @@ export default function ListPage() {
         const connections = data.connections || [];
         
         // APIレスポンスをContact型に変換
-        const contactList: Contact[] = connections.map((conn: any) => ({
+        const contactList: Contact[] = connections.map((conn: {
+          connected_profile_id: number;
+          connected_user_name: string;
+          connected_profile_title: string;
+          connected_at: string;
+          event_name?: string;
+          event_date?: string;
+          memo?: string;
+        }) => ({
           id: conn.connected_profile_id,
           name: conn.connected_user_name,
           profileTitle: conn.connected_profile_title,
