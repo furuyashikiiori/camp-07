@@ -1,0 +1,168 @@
+/* ==== 共通レイアウト ==== */
+.container {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background-image: url('/backpicPC.png');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+@media (max-width: 768px) {
+  .container {
+    background-image: url('/backpicMobile.png');
+  }
+}
+
+.overlay {
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 20px;
+  padding: 60px 40px;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.title {
+  font-size: 2rem;
+  color: #77a0ed;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.message {
+  color: #007bff;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8; 
+}
+
+/* ==== セクションごとのスタイル ==== */
+.section {
+  margin-bottom: 12px;
+}
+
+.yearToggle,
+.dateToggle {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.yearToggle {
+  background-color: #007bff;
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.dateToggle {
+  background-color: #7eb0fb;
+  padding-left: 32px; /* インデント */
+}
+
+/* 矢印 */
+.arrow,
+.arrowSmall {
+  font-size: 1rem;
+  line-height: 1;
+}
+.arrowSmall {
+  font-size: 0.85rem;
+}
+
+/* ユーザー名リンク */
+.nameLink {
+  display: block;
+  padding: 10px 48px;
+  color: #007bff;
+  background-color: #ffffff;
+  border-top: 1px solid #eaeaea;
+  text-decoration: none;
+}
+.nameLink:hover {
+  background-color: #f0f8ff;
+}
+
+/* 連絡先情報 */
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #007bff;
+}
+
+.profileTitle {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 400;
+}
+
+/* エラー表示 */
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dotted #ccc;
+}
+
+.eventDetail {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.eventIcon {
+  margin-right: 6px;
+  color: #007bff;
+}
+
+.memo {
+  font-style: italic;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: #777;
+  padding-left: 18px;
+}

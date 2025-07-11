@@ -59,7 +59,7 @@
 
 .backLink:hover {
   text-decoration: none;
-  opacity: 0.8; 
+  opacity: 0.8;
 }
 
 .selectLabel {
@@ -299,4 +299,41 @@
     top: 10px;
     left: 10px;
   }
+
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.successMessage {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+  padding: 1rem;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  position: relative;
+  max-width: 90%;
+  width: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #155724;
+  padding: 0;
+  margin-left: 10px;
+}
+
+.closeButton:hover {
+  opacity: 0.7;
 }
