@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { getUser, authenticatedFetch } from "@/utils/auth";
-import { getApiBaseUrl } from "@/utils/config";
+// import { getApiBaseUrl } from "@/utils/config";
 
 type Profile = {
   id: number;
