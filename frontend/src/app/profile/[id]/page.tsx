@@ -138,9 +138,10 @@ export default function ProfileDetail() {
                 const firstProfileId = userProfilesData.profiles[0].id;
                 setSelectedProfileId(firstProfileId);
                 
-                // 既存のコネクション情報を取得
+                // 既存のコネクション情報を取得 (自分のプロフィールでない場合のみ)
                 if (!isOwner && profileData.id) {
                   try {
+                    // 自分のプロフィールから相手のプロフィールへのコネクションを確認
                     const connectionsResponse = await authenticatedFetch(
                       `/api/connections?profile_id=${firstProfileId}`
                     );
@@ -161,6 +162,30 @@ export default function ProfileDetail() {
                           memo: existingConnection.memo || "",
                           existingConnectionId: existingConnection.id
                         }));
+                      } else {
+                        // 相手のプロフィールから自分のプロフィールへのコネクションも確認
+                        // (QRコード交換時に相手側が作成した可能性がある)
+                        const reverseConnectionsResponse = await authenticatedFetch(
+                          `/api/connections?profile_id=${profileData.id}`
+                        );
+                        
+                        if (reverseConnectionsResponse.ok) {
+                          const reverseConnectionsData = await reverseConnectionsResponse.json();
+                          const reverseConnection = reverseConnectionsData.connections?.find(
+                            (conn: any) => conn.connect_user_profile_id === firstProfileId
+                          );
+                          
+                          if (reverseConnection) {
+                            // 既存のコネクション情報をフォームに設定 (双方向のコネクションを考慮)
+                            setFriendForm(prev => ({
+                              ...prev,
+                              eventName: reverseConnection.event_name || "",
+                              eventDate: reverseConnection.event_date || "",
+                              memo: reverseConnection.memo || "",
+                              existingConnectionId: reverseConnection.id
+                            }));
+                          }
+                        }
                       }
                     }
                   } catch (err) {
@@ -528,6 +553,13 @@ export default function ProfileDetail() {
             ) : (
               <form onSubmit={handleAddFriend} className={styles.friendForm}>
                 <h3>{friendForm.existingConnectionId ? 'フレンド情報を編集' : 'フレンド追加'}</h3>
+
+                {/* プロフィール選択は削除し、選択されたプロフィールの表示のみにする */}
+                {userProfiles.length > 0 && selectedProfileId && (
+                  <div className={styles.selectedProfileInfo}>
+                    <p>使用プロフィール: {userProfiles.find(p => p.id === selectedProfileId)?.display_name || '不明'}</p>
+                  </div>
+                )}
                 
                 <div className={styles.formGroup}>
                   <label htmlFor="eventName">イベント名:</label>

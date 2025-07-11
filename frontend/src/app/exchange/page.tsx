@@ -29,6 +29,9 @@ export default function ExchangePage() {
   const [exchanging, setExchanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 既存のコネクションIDを保存する状態を追加
+  const [existingConnectionId, setExistingConnectionId] = useState<number | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       const user = getUser();
@@ -67,7 +70,37 @@ export default function ExchangePage() {
 
         // 最初のプロフィールをデフォルトで選択
         if (profiles.length > 0) {
-          setSelectedProfileId(profiles[0].id);
+          const firstProfileId = profiles[0].id;
+          setSelectedProfileId(firstProfileId);
+          
+          // 既存のコネクション情報を確認
+          if (scannedProfileData.id) {
+            try {
+              const connectionsResponse = await authenticatedFetch(
+                `http://localhost:8080/api/connections?profile_id=${firstProfileId}`
+              );
+              
+              if (connectionsResponse.ok) {
+                const connectionsData = await connectionsResponse.json();
+                // 表示中のプロフィールとのコネクションを検索
+                const existingConnection = connectionsData.connections?.find(
+                  (conn: any) => conn.connect_user_profile_id === scannedProfileData.id
+                );
+                
+                if (existingConnection) {
+                  // 既存のコネクション情報をフォームに設定
+                  setEventInfo({
+                    eventName: existingConnection.event_name || "",
+                    eventDate: existingConnection.event_date || "",
+                    memo: existingConnection.memo || ""
+                  });
+                  setExistingConnectionId(existingConnection.id);
+                }
+              }
+            } catch (err) {
+              console.error("コネクション情報取得エラー:", err);
+            }
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -93,37 +126,67 @@ export default function ExchangePage() {
     setError(null);
 
     try {
-      // 2つのコネクションを作成（相互の関係）
-      const response1 = await authenticatedFetch("/api/connections", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          profile_id: selectedProfileId,
-          connect_user_profile_id: scannedProfile.id,
-          event_name: eventInfo.eventName,
-          event_date: eventInfo.eventDate,
-          memo: eventInfo.memo,
-        }),
-      });
+      let response;
+      
+      // 既存のコネクションがある場合は更新、そうでなければ新規作成
+      if (existingConnectionId) {
+        // 既存のコネクションを更新
+        response = await authenticatedFetch(`/api/connections/${existingConnectionId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event_name: eventInfo.eventName,
+            event_date: eventInfo.eventDate,
+            memo: eventInfo.memo,
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('フレンド情報の更新に失敗しました');
+        }
+      } else {
+        // 新規作成の場合は両方向のコネクションを作成
+        const response1 = await authenticatedFetch('http://localhost:8080/api/connections', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            profile_id: selectedProfileId,
+            connect_user_profile_id: scannedProfile.id,
+            event_name: eventInfo.eventName,
+            event_date: eventInfo.eventDate,
+            memo: eventInfo.memo
+          }),
+        });
 
-      const response2 = await authenticatedFetch("/api/connections", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          profile_id: scannedProfile.id,
-          connect_user_profile_id: selectedProfileId,
-          event_name: eventInfo.eventName,
-          event_date: eventInfo.eventDate,
-          memo: eventInfo.memo,
-        }),
-      });
+        const response2 = await authenticatedFetch('http://localhost:8080/api/connections', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            profile_id: scannedProfile.id,
+            connect_user_profile_id: selectedProfileId,
+            event_name: eventInfo.eventName,
+            event_date: eventInfo.eventDate,
+            memo: eventInfo.memo
+          }),
+        });
 
-      if (!response1.ok || !response2.ok) {
-        throw new Error("プロフィール交換に失敗しました");
+        if (!response1.ok || !response2.ok) {
+          throw new Error('プロフィール交換に失敗しました');
+        }
+        
+        // 新規作成後に接続IDを取得して状態を更新
+        if (response1.ok) {
+          const data = await response1.json();
+          if (data?.connection?.id) {
+            setExistingConnectionId(data.connection.id);
+          }
+        }
       }
 
       // 成功した場合、完了ページに遷移または元のページに戻る
@@ -132,6 +195,47 @@ export default function ExchangePage() {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setExchanging(false);
+    }
+  };
+
+  // プロフィール選択時に既存のコネクションを確認
+  const handleProfileSelect = async (profileId: number) => {
+    setSelectedProfileId(profileId);
+    
+    if (!scannedProfile) return;
+    
+    try {
+      const connectionsResponse = await authenticatedFetch(
+        `http://localhost:8080/api/connections?profile_id=${profileId}`
+      );
+      
+      if (connectionsResponse.ok) {
+        const connectionsData = await connectionsResponse.json();
+        // 表示中のプロフィールとのコネクションを検索
+        const existingConnection = connectionsData.connections?.find(
+          (conn: any) => conn.connect_user_profile_id === scannedProfile.id
+        );
+        
+        if (existingConnection) {
+          // 既存のコネクション情報をフォームに設定
+          setEventInfo({
+            eventName: existingConnection.event_name || "",
+            eventDate: existingConnection.event_date || "",
+            memo: existingConnection.memo || ""
+          });
+          setExistingConnectionId(existingConnection.id);
+        } else {
+          // 新規作成の場合はフォームをリセット
+          setEventInfo({
+            eventName: '',
+            eventDate: '',
+            memo: ''
+          });
+          setExistingConnectionId(null);
+        }
+      }
+    } catch (err) {
+      console.error("コネクション情報取得エラー:", err);
     }
   };
 
@@ -166,7 +270,7 @@ export default function ExchangePage() {
           &lt; QRページに戻る
         </Link>
 
-        <h1 className={styles.title}>プロフィール交換</h1>
+        <h1 className={styles.title}>{existingConnectionId ? 'フレンド情報編集' : 'プロフィール交換'}</h1>
 
         <div className={styles.exchangeSection}>
           <div className={styles.profileSection}>
@@ -200,9 +304,8 @@ export default function ExchangePage() {
                       name='selectedProfile'
                       value={profile.id}
                       checked={selectedProfileId === profile.id}
-                      onChange={(e) =>
-                        setSelectedProfileId(Number(e.target.value))
-                      }
+
+                      onChange={(e) => handleProfileSelect(Number(e.target.value))}
                     />
                     <label
                       htmlFor={`profile-${profile.id}`}
@@ -276,7 +379,9 @@ export default function ExchangePage() {
             disabled={!selectedProfileId || exchanging}
             className={styles.exchangeButton}
           >
-            {exchanging ? "交換中..." : "プロフィールを交換する"}
+
+            {exchanging ? '処理中...' : existingConnectionId ? 'フレンド情報を更新する' : 'フレンド情報を登録する'}
+
           </button>
         </div>
       </main>
