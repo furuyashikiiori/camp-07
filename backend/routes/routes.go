@@ -51,6 +51,8 @@ func SetupRoutes(r *gin.Engine) {
 
 			// プロフィールごとのオプションプロフィール一覧取得
 			profiles.GET("/:id/option-profiles", app.GetOptionProfilesByProfileID)
+
+			profiles.DELETE("/:id", app.DeleteProfile) // プロフィール削除
 		}
 
 		// 公開API（認証不要）
