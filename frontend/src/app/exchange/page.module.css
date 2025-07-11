@@ -7,7 +7,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  padding: 4  0px 20px;
 }
 
 @media (max-width: 768px) {
@@ -48,7 +48,6 @@
   color: #77a0ed;
   margin-bottom: 30px;
   font-size: 2rem;
-  padding-top: 40px;
 }
 
 .exchangeSection {
@@ -233,7 +232,7 @@
   }
   
   .main {
-    padding: 30px 20px;
+    padding: 50px 20px;
   }
 
   .backLink {
@@ -253,7 +252,7 @@
   }
   
   .main {
-    padding: 20px 15px;
+    padding: 80px 15px;
   }
 
   .backLink {
