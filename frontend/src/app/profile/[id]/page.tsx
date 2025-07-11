@@ -365,7 +365,7 @@ export default function ProfileDetail() {
           <p className={styles.message}>
             {error || "プロフィールが見つかりませんでした。"}
           </p>
-          <button className={styles.backButton} onClick={() => router.back()}>
+          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
             戻る
           </button>
         </div>
@@ -624,7 +624,7 @@ export default function ProfileDetail() {
           </button>
         )}
 
-        <button className={styles.backButton} onClick={() => router.back()}>
+        <button className={styles.backButton} onClick={() => router.push('/mypage')}>
           戻る
         </button>
       </div>
