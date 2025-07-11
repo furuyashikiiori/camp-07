@@ -7,17 +7,17 @@ import Link from "next/link";
 import Image from 'next/image';
 import { authenticatedFetch, getUser } from "@/utils/auth";
 
-declare module "next-auth" {
-  interface User {
-    id: string
-  }
+// declare module "next-auth" {
+//   interface User {
+//     id: string
+//   
   
-  interface Session {
-    user: User & {
-      id: string
-    }
-  }
-}
+//   interface Session {
+//     user: User & {
+//       id: string
+//     }
+//   }
+// }
 
 import { getApiBaseUrl } from '@/utils/config';
 
