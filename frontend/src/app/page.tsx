@@ -20,8 +20,15 @@ export default function HomePage() {
     const user = getUser();
     const token = getToken();
 
+
+      // 5秒後にボタン表示を開始
+      const timeout = setTimeout(() => {
+        setShowButtons(true);
+      }, 2500);
+
     console.log('HomePage - User:', user);
     console.log('HomePage - Token:', token ? 'Present' : 'Missing');
+
 
     if (!user) {
       console.log('No user found, redirecting to auth');
@@ -42,6 +49,14 @@ export default function HomePage() {
     return () => clearTimeout(timeout);
   }, []);
 
+    const handleBackgroundClick = () => {
+    const video = videoRef.current;
+    if (video && !video.ended) {
+      video.currentTime = video.duration - 0.1; 
+      setShowButtons(true);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {/* ★ 右上にログアウトボタン */}
@@ -50,7 +65,12 @@ export default function HomePage() {
       </div>
 
       <main className={styles.main}>
-        {/* ─ 背景動画 ─ */}
+
+        <div 
+          className={styles.backgroundClickArea}
+          onClick={handleBackgroundClick}
+        />
+
         <video
           ref={videoRef}
           autoPlay
