@@ -6,6 +6,8 @@ import { setUser, setToken } from '@/utils/auth';
 import styles from './page.module.css';
 import Link from 'next/link';
 
+import { getApiBaseUrl } from '@/utils/config';
+
 export default function SignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -23,7 +25,7 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:8080/api/signup', {
+      const res = await fetch(`${getApiBaseUrl()}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

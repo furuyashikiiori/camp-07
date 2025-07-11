@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { setUser, setToken } from '@/utils/auth';
+import { getApiBaseUrl } from '@/utils/config';
 import styles from './page.module.css';
 import Link from 'next/link';
 
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('http://localhost:8080/api/signin', {
+      const res = await fetch(`${getApiBaseUrl()}/api/signin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

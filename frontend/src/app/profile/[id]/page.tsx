@@ -19,6 +19,8 @@ declare module "next-auth" {
   }
 }
 
+import { getApiBaseUrl } from '@/utils/config';
+
 type Profile = {
   id: number;
   user_id: number;
@@ -102,7 +104,7 @@ export default function ProfileDetail() {
 
         // アイコンURLが相対パスの場合、バックエンドの完全URLに変換
         if (profileData.icon_url && profileData.icon_url.startsWith("/api/")) {
-          profileData.icon_url = `http://localhost:8080${profileData.icon_url}`;
+          profileData.icon_url = `${getApiBaseUrl()}${profileData.icon_url}`;
         }
 
         setProfile(profileData);

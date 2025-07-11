@@ -71,7 +71,7 @@ export default function ProfilePage() {
     const fetchProfiles = async () => {
       try {
         console.log('Fetching profiles for user ID:', user.id);
-        const response = await authenticatedFetch(`http://localhost:8080/api/users/${user.id}/profiles`);
+        const response = await authenticatedFetch(`/api/users/${user.id}/profiles`);
         console.log('Response status:', response.status);
         console.log('Response ok:', response.ok);
 
