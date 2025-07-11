@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { getUser, getToken, authenticatedFetch } from "@/utils/auth";
@@ -8,9 +9,9 @@ import { getUser, getToken, authenticatedFetch } from "@/utils/auth";
 type OptionalField = { label: string; value: string };
 
 type PresetLinkType = {
-  name: string;        // Goの Name フィールドに対応
-  icon_url: string;    // Goの IconURL フィールドに対応  
-  base_url: string;    // Goの BaseURL フィールドに対応
+  name: string; // Goの Name フィールドに対応
+  icon_url: string; // Goの IconURL フィールドに対応
+  base_url: string; // Goの BaseURL フィールドに対応
   placeholder: string; // Goの Placeholder フィールドに対応
 };
 
@@ -43,12 +44,12 @@ interface FormData {
 }
 
 // リンク選択モーダルコンポーネント
-function LinkSelectionModal({ 
-  isOpen, 
-  onClose, 
-  onSelectPreset, 
+function LinkSelectionModal({
+  isOpen,
+  onClose,
+  onSelectPreset,
   onSelectOther,
-  presetTypes 
+  presetTypes,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -63,9 +64,11 @@ function LinkSelectionModal({
       <div className={styles.modal}>
         <div className={styles.modalHeader}>
           <h3>リンクタイプを選択</h3>
-          <button onClick={onClose} className={styles.closeButton}>×</button>
+          <button onClick={onClose} className={styles.closeButton}>
+            ×
+          </button>
         </div>
-        
+
         <div className={styles.modalContent}>
           <div className={styles.presetSection}>
             <div className={styles.presetGrid}>
@@ -75,13 +78,19 @@ function LinkSelectionModal({
                   onClick={() => onSelectPreset(preset)}
                   className={styles.presetButton}
                 >
-                  <img src={preset.icon_url} alt={preset.name} className={styles.presetIcon} />
+                  <Image
+                    src={preset.icon_url}
+                    alt={preset.name}
+                    className={styles.presetIcon}
+                    width={24}
+                    height={24}
+                  />
                   <span>{preset.name}</span>
                 </button>
               ))}
             </div>
           </div>
-          
+
           <div className={styles.customSection}>
             <h4>その他のリンク</h4>
             <button onClick={onSelectOther} className={styles.customButton}>
@@ -96,11 +105,11 @@ function LinkSelectionModal({
 }
 
 // 個別リンク入力コンポーネント
-function LinkInputComponent({ 
-  link, 
-  index, 
-  onUpdate, 
-  onRemove 
+function LinkInputComponent({
+  link,
+  index,
+  onUpdate,
+  onRemove,
 }: {
   link: OtherLink;
   index: number;
@@ -117,16 +126,24 @@ function LinkInputComponent({
       <div className={styles.linkHeader}>
         {link.isPreset && link.presetType ? (
           <div className={styles.presetHeader}>
-            <img src={link.presetType.icon_url} alt={link.presetType.name} className={styles.linkIcon} />
+            <Image
+              src={link.presetType.icon_url}
+              alt={link.presetType.name}
+              className={styles.linkIcon}
+              width={24}
+              height={24}
+            />
             <span className={styles.linkTitle}>{link.presetType.name}</span>
           </div>
         ) : (
           <div className={styles.customHeader}>
-            <span className={styles.linkTitle}>{link.label || "カスタムリンク"}</span>
+            <span className={styles.linkTitle}>
+              {link.label || "カスタムリンク"}
+            </span>
           </div>
         )}
-        <button 
-          type="button" 
+        <button
+          type='button'
           onClick={() => onRemove(index)}
           className={styles.removeButton}
         >
@@ -138,8 +155,8 @@ function LinkInputComponent({
         {!link.isPreset && (
           <>
             <input
-              type="text"
-              placeholder="リンク名"
+              type='text'
+              placeholder='リンク名'
               value={link.label}
               onChange={(e) => handleChange("label", e.target.value)}
               className={styles.linkInput}
@@ -147,25 +164,30 @@ function LinkInputComponent({
             <label className={styles.fileLabel}>
               アイコン画像（任意）:
               <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleChange("iconFile", e.target.files?.[0] || new File([], ""))}
+                type='file'
+                accept='image/*'
+                onChange={(e) =>
+                  handleChange(
+                    "iconFile",
+                    e.target.files?.[0] || new File([], "")
+                  )
+                }
                 className={styles.fileInput}
               />
             </label>
           </>
         )}
-        
+
         <input
-          type="url"
-          placeholder="URL"
+          type='url'
+          placeholder='URL'
           value={link.url}
           onChange={(e) => handleChange("url", e.target.value)}
           className={styles.linkInput}
         />
-        
+
         <textarea
-          placeholder="リンクの説明（任意）"
+          placeholder='リンクの説明（任意）'
           value={link.description}
           onChange={(e) => handleChange("description", e.target.value)}
           className={styles.linkTextarea}
@@ -265,7 +287,7 @@ export default function NewProfilePage() {
       url: "",
       description: "",
     };
-    
+
     setFormData({
       ...formData,
       otherLinks: [...formData.otherLinks, newLink],
@@ -281,7 +303,7 @@ export default function NewProfilePage() {
       url: "",
       description: "",
     };
-    
+
     setFormData({
       ...formData,
       otherLinks: [...formData.otherLinks, newLink],
@@ -347,7 +369,11 @@ export default function NewProfilePage() {
 
       if (!response.ok) {
         const error = await response.json();
-        alert(`プロフィールの登録に失敗しました: ${error.error || "エラーが発生しました"}`);
+        alert(
+          `プロフィールの登録に失敗しました: ${
+            error.error || "エラーが発生しました"
+          }`
+        );
         return;
       }
 
@@ -386,7 +412,7 @@ export default function NewProfilePage() {
     }
   };
 
-  const saveLinks = async (profileId: number, user: any) => {
+  const saveLinks = async (profileId: number, user: { id: number }) => {
     // SNSリンクを保存
     const snsLinks = [
       { title: "Twitter", url: formData.sns.twitter },
@@ -397,7 +423,9 @@ export default function NewProfilePage() {
     for (const link of snsLinks) {
       if (link.url.trim()) {
         try {
-          const presetIcon = presetTypes.find(p => p.name.includes(link.title));
+          const presetIcon = presetTypes.find((p) =>
+            p.name.includes(link.title)
+          );
           const snsLinkData = {
             user_id: user.id,
             profile_id: profileId,
@@ -421,7 +449,7 @@ export default function NewProfilePage() {
       if (link.url.trim()) {
         try {
           let imageUrl = null;
-          
+
           if (link.isPreset && link.presetType) {
             imageUrl = link.presetType.icon_url;
           } else if (link.iconFile && link.iconFile.size > 0) {
@@ -558,13 +586,17 @@ export default function NewProfilePage() {
                 type='text'
                 placeholder='項目名'
                 value={field.label}
-                onChange={(e) => handleChange(e, index, "label", "optionalFields")}
+                onChange={(e) =>
+                  handleChange(e, index, "label", "optionalFields")
+                }
               />
               <input
                 type='text'
                 placeholder='内容'
                 value={field.value}
-                onChange={(e) => handleChange(e, index, "value", "optionalFields")}
+                onChange={(e) =>
+                  handleChange(e, index, "value", "optionalFields")
+                }
               />
             </div>
           ))}
@@ -613,7 +645,7 @@ export default function NewProfilePage() {
 
           <div className={styles.linksSection}>
             <h3>リンク</h3>
-            
+
             {formData.otherLinks.map((link, index) => (
               <LinkInputComponent
                 key={link.id}

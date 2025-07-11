@@ -88,7 +88,6 @@ export default function ProfileDetail() {
   } | null>(null);
   const [userProfiles, setUserProfiles] = useState<Profile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
-  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,7 +150,7 @@ export default function ProfileDetail() {
                       const connectionsData = await connectionsResponse.json();
                       // 表示中のプロフィールとのコネクションを検索
                       const existingConnection = connectionsData.connections?.find(
-                        (conn: any) => conn.connect_user_profile_id === profileData.id
+                        (conn: { connect_user_profile_id: number }) => conn.connect_user_profile_id === profileData.id
                       );
                       
                       if (existingConnection) {
@@ -173,7 +172,7 @@ export default function ProfileDetail() {
                         if (reverseConnectionsResponse.ok) {
                           const reverseConnectionsData = await reverseConnectionsResponse.json();
                           const reverseConnection = reverseConnectionsData.connections?.find(
-                            (conn: any) => conn.connect_user_profile_id === firstProfileId
+                            (conn: { connect_user_profile_id: number }) => conn.connect_user_profile_id === firstProfileId
                           );
                           
                           if (reverseConnection) {
@@ -225,7 +224,7 @@ export default function ProfileDetail() {
     };
 
     fetchData();
-  }, [params.id]);
+  }, [params.id, isOwner]);
 
   // フレンド追加・編集フォームの表示・非表示切り替え
   const toggleFriendForm = () => {
