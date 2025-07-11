@@ -1,0 +1,186 @@
+.container {
+  min-height: 100vh;
+  background-image: url("/backpicPC.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    background-image: url("/backpicMobile.png");
+  }
+}
+
+.overlay {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+}
+
+.title {
+  text-align: center;
+  color: #77a0ed;
+  margin-bottom: 24px;
+  font-size: 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  color: #77a0ed;
+}
+
+.form input,
+.form textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #666;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form h3 {
+  color: #77a0ed;
+  margin: 20px 0 10px 0;
+  font-size: 1.2rem;
+}
+
+.optionalField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.optionalField input,
+.optionalField textarea {
+  margin-bottom: 8px;
+}
+
+.addOptionalButton {
+  background-color: #77a0ed;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.addOptionalButton:hover {
+  background-color: #0056b3;
+}
+
+.snsSection {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.snsSection h3 {
+  margin-top: 0;
+  color: #77a0ed;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.submitButton {
+  flex: 1;
+  background-color: #77a0ed;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.submitButton:hover {
+  background-color: #0056b3;
+}
+
+.cancelButton {
+  flex: 1;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background-color: #5a6268;
+}
+
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.message {
+  color: #77a0ed;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.backButton {
+  background-color: #77a0ed;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: block;
+  margin: 0 auto;
+}
+
+.backButton:hover {
+  background-color: #0056b3;
+}

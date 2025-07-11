@@ -5,39 +5,73 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import styles from './list.module.css';
+import styles from './page.module.css';
+import { getUser, authenticatedFetch } from '@/utils/auth';
 
 type Contact = {
   id: number;
   name: string;
-  exchangeDate: string; 
+  profileTitle: string;
+  exchangeDate: string;
+  eventName?: string;
+  eventDate?: string;
+  memo?: string;
 };
 
 export default function ListPage() {
+  const router = useRouter();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [openYear, setOpenYear] = useState<Record<string, boolean>>({});
   const [openDate, setOpenDate] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  /* ===== ダミーを使う場合はコメント解除 ===== */
   useEffect(() => {
-    
-    const dummyContacts: Contact[] = [
-      { id: 1, name: '青メッシュ', exchangeDate: '2025-06-30' },
-      { id: 2, name: 'Ori',       exchangeDate: '2025-06-30' },
-      { id: 3, name: 'みっくん',   exchangeDate: '2025-06-11' },
-      { id: 4, name: 'たちょ',     exchangeDate: '2025-05-09' },
-    ];
-    setContacts(dummyContacts);
-    
-  }, []);
-  /* ======================================== */
+    const fetchConnections = async () => {
+      const user = getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        const response = await authenticatedFetch(`/api/users/${user.id}/connections`);
+        if (!response.ok) {
+          throw new Error('交換済みユーザーの取得に失敗しました');
+        }
+        
+        const data = await response.json();
+        const connections = data.connections || [];
+        
+        // APIレスポンスをContact型に変換
+        const contactList: Contact[] = connections.map((conn: any) => ({
+          id: conn.connected_profile_id,
+          name: conn.connected_user_name,
+          profileTitle: conn.connected_profile_title,
+          exchangeDate: conn.connected_at.split('T')[0], // 日付部分のみ抽出
+          eventName: conn.event_name || '',
+          eventDate: conn.event_date || '',
+          memo: conn.memo || '',
+        }));
+        
+        setContacts(contactList);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'エラーが発生しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConnections();
+  }, [router]);
 
   /* 年 → 日付 → Contact[] にまとめる */
   const grouped = contacts.reduce<Record<string, Record<string, Contact[]>>>(
     (acc, c) => {
       const year = new Date(c.exchangeDate).getFullYear().toString();
-      const md = c.exchangeDate.slice(5); 
+      const md = c.exchangeDate.slice(5);
       acc[year] ??= {};
       acc[year][md] ??= [];
       acc[year][md].push(c);
@@ -46,8 +80,39 @@ export default function ListPage() {
     {},
   );
 
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <Link href="/" className={styles.backLink}>
+          &lt; Back StartPage
+        </Link>
+        <div className={styles.overlay}>
+          <h1 className={styles.title}>Exchange List</h1>
+          <p className={styles.message}>読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <Link href="/" className={styles.backLink}>
+          &lt; Back StartPage
+        </Link>
+        <div className={styles.overlay}>
+          <h1 className={styles.title}>Exchange List</h1>
+          <p className={styles.error}>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
+      <Link href="/" className={styles.backLink}>
+        &lt; Back StartPage
+      </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>Exchange List</h1>
 
@@ -85,7 +150,7 @@ export default function ListPage() {
                       </span>
                     </button>
 
-                    {/* 名前リスト */}
+                    {/* 名前とプロフィールタイトルリスト */}
                     {openDate[key] &&
                       grouped[year][md].map(p => (
                         <Link
@@ -93,7 +158,33 @@ export default function ListPage() {
                           href={`/profile/${p.id}`}
                           className={styles.nameLink}
                         >
-                          {p.name}
+                          <div className={styles.contactInfo}>
+                            <span className={styles.userName}>{p.name}</span>
+                            <span className={styles.profileTitle}>{p.profileTitle}</span>
+                            
+                            {/* イベント情報があれば表示 */}
+                            {(p.eventName || p.eventDate || p.memo) && (
+                              <div className={styles.eventInfo}>
+                                {p.eventName && (
+                                  <div className={styles.eventDetail}>
+                                    <span className={styles.eventIcon}>📌</span>
+                                    <span>{p.eventName}</span>
+                                  </div>
+                                )}
+                                {p.eventDate && (
+                                  <div className={styles.eventDetail}>
+                                    <span className={styles.eventIcon}>📅</span>
+                                    <span>{p.eventDate}</span>
+                                  </div>
+                                )}
+                                {p.memo && (
+                                  <div className={styles.memo}>
+                                    {p.memo}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </Link>
                       ))}
                   </div>

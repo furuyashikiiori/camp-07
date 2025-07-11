@@ -1,0 +1,101 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { setUser, setToken } from '@/utils/auth';
+import styles from './page.module.css';
+import Link from 'next/link';
+
+import { getApiBaseUrl } from '@/utils/config';
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) throw new Error('サインアップに失敗しました');
+
+      const data = await res.json();
+      console.log('Signup response:', data);
+      setUser(data.user);
+      if (data.token) {
+        setToken(data.token);
+        console.log('Token saved successfully');
+      }
+      router.replace('/');
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      <Link href="/auth" className={styles.backLink}>
+        &lt; Back Page
+      </Link>
+
+      <div className={styles.overlay}>
+        <h1 className={styles.title}>SignupPage</h1>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <label>
+            名前
+            <input
+              type="text"
+              name="name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+            />
+          </label>
+
+          <label>
+            メールアドレス
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </label>
+
+          <label>
+            パスワード
+            <input
+              type="password"
+              name="password"
+              required
+              value={formData.password}
+              onChange={handleChange}
+            />
+          </label>
+
+          {error && <p className={styles.error}>{error}</p>}
+
+          <button type="submit" className={styles.submitButton}>
+            登録する
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}

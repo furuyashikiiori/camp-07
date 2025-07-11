@@ -80,6 +80,17 @@
   align-items: center;
 }
 
+.backgroundClickArea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
+}
+
 .videoBackground {
   position: absolute;
   width: 100%;
@@ -90,11 +101,12 @@
 
 .overlay {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
   transform: translateY(80px);
+  pointer-events: none;
 }
 
 .buttonRow {
@@ -103,6 +115,7 @@
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 1s ease, transform 1s ease;
+  pointer-events: auto;
 }
 
 .circleButton {

@@ -51,6 +51,10 @@ Thumbs.db
 /database/*.sqlite
 /database/*.sqlite3
 
+# Uploads (user uploaded files)
+/backend/uploads/*
+!/backend/uploads/.gitkeep
+
 # Logs
 *.log
 logs/

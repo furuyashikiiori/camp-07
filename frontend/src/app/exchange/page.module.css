@@ -1,0 +1,273 @@
+.container {
+  min-height: 100vh;
+  background-image: url("/backpicPC.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    background-image: url("/backpicMobile.png");
+  }
+}
+
+.main {
+  background-color: rgba(255, 255, 255, 0.4);
+  padding: 120px 40px 40px 40px;
+  padding-top: 120px;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.title {
+  text-align: center;
+  color: #77a0ed;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  padding-top: 40px;
+}
+
+.exchangeSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.profileSection {
+  border: 1px solid #77a0ed;
+  border-radius: 12px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.profileSection h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #77a0ed;
+  font-size: 1.2rem;
+}
+
+.profileCard {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+.profileCard h3 {
+  margin: 0 0 10px 0;
+  color: #77a0ed;
+  font-size: 1.1rem;
+}
+
+.profileCard p {
+  margin: 5px 0;
+  color: #0056b3;
+  font-size: 0.9rem;
+}
+
+.profileSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.profileOption input[type="radio"] {
+  margin-top: 5px;
+  accent-color: #77a0ed;
+}
+
+.profileLabel {
+  flex: 1;
+  cursor: pointer;
+}
+
+.profileLabel .profileCard {
+  transition: border-color 0.2s ease;
+}
+
+.profileLabel .profileCard:hover {
+  border-color: #77a0ed;
+}
+
+.profileOption input[type="radio"]:checked + .profileLabel .profileCard {
+  border-color: #77a0ed;
+  background-color: rgba(119, 160, 237, 0.1);
+}
+
+.eventInfoSection {
+  margin-top: 20px;
+  border-top: 1px solid #77a0ed;
+  padding-top: 20px;
+}
+
+.eventInfoSection h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #77a0ed;
+  font-size: 1.2rem;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #77a0ed;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #77a0ed;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #0056b3;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: #77a0ed;
+  box-shadow: 0 0 5px rgba(119, 160, 237, 0.3);
+}
+
+/* カレンダーアイコンの色を変更 */
+.formGroup input[type="date"] {
+  color-scheme: light;
+  color: #0056b3;
+}
+
+.formGroup input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.5) sepia(1) saturate(5) hue-rotate(175deg);
+  cursor: pointer;
+}
+
+.formGroup textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.exchangeAction {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid #77a0ed;
+}
+
+.exchangeButton {
+  background-color: #77a0ed;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.exchangeButton:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.exchangeButton:disabled {
+  background-color: #b5c9e8;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  padding: 20px;
+  background-color: rgba(248, 215, 218, 0.8);
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .exchangeSection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .container {
+    padding: 20px 15px;
+  }
+  
+  .main {
+    padding: 30px 20px;
+  }
+
+  .backLink {
+    top: 20px;
+    left: 20px;
+    font-size: 1.4rem;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px 10px;
+  }
+  
+  .main {
+    padding: 20px 15px;
+  }
+
+  .backLink {
+    top: 15px;
+    left: 15px;
+    font-size: 1.2rem;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .exchangeButton {
+    width: 100%;
+    padding: 14px 20px;
+  }
+}

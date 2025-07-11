@@ -8,7 +8,7 @@
   background-position: center;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   padding: 40px 20px;
 }
 @media (max-width: 768px) {
@@ -37,6 +37,22 @@
   color: #007bff;
   text-align: center;
   margin-bottom: 30px;
+}
+
+.backLink {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  font-size: 1.7rem;
+  color: #77a0ed;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.backLink:hover {
+  text-decoration: none;
+  opacity: 0.8; 
 }
 
 /* ==== セクションごとのスタイル ==== */
@@ -90,4 +106,63 @@
 }
 .nameLink:hover {
   background-color: #f0f8ff;
+}
+
+/* 連絡先情報 */
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #007bff;
+}
+
+.profileTitle {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 400;
+}
+
+/* エラー表示 */
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.eventInfo {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dotted #ccc;
+}
+
+.eventDetail {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.eventIcon {
+  margin-right: 6px;
+  color: #007bff;
+}
+
+.memo {
+  font-style: italic;
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: #777;
+  padding-left: 18px;
 }
