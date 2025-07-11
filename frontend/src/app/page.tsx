@@ -23,17 +23,31 @@ export default function HomePage() {
       // 5秒後にボタン表示を開始
       const timeout = setTimeout(() => {
         setShowButtons(true);
-      }, 5000);
+      }, 2500);
 
       return () => clearTimeout(timeout);
     }
   }, []);
+
+    const handleBackgroundClick = () => {
+    const video = videoRef.current;
+    if (video && !video.ended) {
+      video.currentTime = video.duration - 0.1; 
+      setShowButtons(true);
+    }
+  };
 
   return (
     <div className={styles.container}>
 {/* <Header /> */}
 
       <main className={styles.main}>
+
+        <div 
+          className={styles.backgroundClickArea}
+          onClick={handleBackgroundClick}
+        />
+
         <video
           ref={videoRef}
           autoPlay
