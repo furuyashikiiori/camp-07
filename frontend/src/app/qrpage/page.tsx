@@ -34,7 +34,7 @@ export default function QRPage() {
       }
 
       try {
-        const response = await authenticatedFetch(`http://localhost:8080/api/users/${user.id}/profiles`);
+        const response = await authenticatedFetch(`/api/users/${user.id}/profiles`);
         if (!response.ok) {
           throw new Error('プロフィールの取得に失敗しました');
         }

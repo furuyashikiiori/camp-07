@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import styles from './page.module.css';
-import { getUser, authenticatedFetch } from '@/utils/auth';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import styles from "./page.module.css";
+import { getUser, authenticatedFetch } from "@/utils/auth";
+import { getApiBaseUrl } from "@/utils/config";
 
 type Profile = {
   id: number;
@@ -17,11 +18,13 @@ type Profile = {
 export default function ExchangePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const scannedProfileId = searchParams.get('profileId');
-  
+  const scannedProfileId = searchParams.get("profileId");
+
   const [myProfiles, setMyProfiles] = useState<Profile[]>([]);
   const [scannedProfile, setScannedProfile] = useState<Profile | null>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [exchanging, setExchanging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,30 +36,34 @@ export default function ExchangePage() {
     const fetchData = async () => {
       const user = getUser();
       if (!user) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
       if (!scannedProfileId) {
-        setError('プロフィールIDが指定されていません');
+        setError("プロフィールIDが指定されていません");
         setLoading(false);
         return;
       }
 
       try {
         // 自分のプロフィール一覧を取得
-        const myProfilesResponse = await authenticatedFetch(`http://localhost:8080/api/users/${user.id}/profiles`);
+        const myProfilesResponse = await authenticatedFetch(
+          `/api/users/${user.id}/profiles`
+        );
         if (!myProfilesResponse.ok) {
-          throw new Error('プロフィールの取得に失敗しました');
+          throw new Error("プロフィールの取得に失敗しました");
         }
         const myProfilesData = await myProfilesResponse.json();
         const profiles = myProfilesData.profiles || [];
         setMyProfiles(profiles);
 
         // 相手のプロフィール情報を取得
-        const scannedProfileResponse = await authenticatedFetch(`http://localhost:8080/api/profiles/${scannedProfileId}`);
+        const scannedProfileResponse = await authenticatedFetch(
+          `/api/profiles/${scannedProfileId}`
+        );
         if (!scannedProfileResponse.ok) {
-          throw new Error('相手のプロフィール情報の取得に失敗しました');
+          throw new Error("相手のプロフィール情報の取得に失敗しました");
         }
         const scannedProfileData = await scannedProfileResponse.json();
         setScannedProfile(scannedProfileData);
@@ -96,7 +103,7 @@ export default function ExchangePage() {
           }
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'エラーが発生しました');
+        setError(err instanceof Error ? err.message : "エラーが発生しました");
       } finally {
         setLoading(false);
       }
@@ -107,9 +114,9 @@ export default function ExchangePage() {
 
   // イベント情報の状態
   const [eventInfo, setEventInfo] = useState({
-    eventName: '',
-    eventDate: '',
-    memo: ''
+    eventName: "",
+    eventDate: "",
+    memo: "",
   });
 
   const handleExchange = async () => {
@@ -124,7 +131,7 @@ export default function ExchangePage() {
       // 既存のコネクションがある場合は更新、そうでなければ新規作成
       if (existingConnectionId) {
         // 既存のコネクションを更新
-        response = await authenticatedFetch(`http://localhost:8080/api/connections/${existingConnectionId}`, {
+        response = await authenticatedFetch(`/api/connections/${existingConnectionId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -183,9 +190,9 @@ export default function ExchangePage() {
       }
 
       // 成功した場合、完了ページに遷移または元のページに戻る
-      router.push('/qrpage?exchanged=true');
+      router.push("/qrpage?exchanged=true");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'エラーが発生しました');
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
       setExchanging(false);
     }
@@ -246,7 +253,7 @@ export default function ExchangePage() {
     return (
       <div className={styles.container}>
         <main className={styles.main}>
-          <Link href="/qrpage" className={styles.backLink}>
+          <Link href='/qrpage' className={styles.backLink}>
             &lt; QRページに戻る
           </Link>
           <h1 className={styles.title}>エラー</h1>
@@ -259,7 +266,7 @@ export default function ExchangePage() {
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <Link href="/qrpage" className={styles.backLink}>
+        <Link href='/qrpage' className={styles.backLink}>
           &lt; QRページに戻る
         </Link>
 
@@ -271,9 +278,13 @@ export default function ExchangePage() {
             {scannedProfile && (
               <div className={styles.profileCard}>
                 <h3>{scannedProfile.title}</h3>
-                <p><strong>表示名:</strong> {scannedProfile.display_name}</p>
+                <p>
+                  <strong>表示名:</strong> {scannedProfile.display_name}
+                </p>
                 {scannedProfile.description && (
-                  <p><strong>説明:</strong> {scannedProfile.description}</p>
+                  <p>
+                    <strong>説明:</strong> {scannedProfile.description}
+                  </p>
                 )}
               </div>
             )}
@@ -288,19 +299,27 @@ export default function ExchangePage() {
                 {myProfiles.map((profile) => (
                   <div key={profile.id} className={styles.profileOption}>
                     <input
-                      type="radio"
+                      type='radio'
                       id={`profile-${profile.id}`}
-                      name="selectedProfile"
+                      name='selectedProfile'
                       value={profile.id}
                       checked={selectedProfileId === profile.id}
+
                       onChange={(e) => handleProfileSelect(Number(e.target.value))}
                     />
-                    <label htmlFor={`profile-${profile.id}`} className={styles.profileLabel}>
+                    <label
+                      htmlFor={`profile-${profile.id}`}
+                      className={styles.profileLabel}
+                    >
                       <div className={styles.profileCard}>
                         <h3>{profile.title}</h3>
-                        <p><strong>表示名:</strong> {profile.display_name}</p>
+                        <p>
+                          <strong>表示名:</strong> {profile.display_name}
+                        </p>
                         {profile.description && (
-                          <p><strong>説明:</strong> {profile.description}</p>
+                          <p>
+                            <strong>説明:</strong> {profile.description}
+                          </p>
                         )}
                       </div>
                     </label>
@@ -314,35 +333,41 @@ export default function ExchangePage() {
         {/* イベント情報入力セクション */}
         <div className={styles.eventInfoSection}>
           <h2>イベント情報（任意）</h2>
-          
+
           <div className={styles.formGroup}>
-            <label htmlFor="eventName">イベント名:</label>
+            <label htmlFor='eventName'>イベント名:</label>
             <input
-              type="text"
-              id="eventName"
+              type='text'
+              id='eventName'
               value={eventInfo.eventName}
-              onChange={(e) => setEventInfo(prev => ({ ...prev, eventName: e.target.value }))}
-              placeholder="例: 技術交流会"
+              onChange={(e) =>
+                setEventInfo((prev) => ({ ...prev, eventName: e.target.value }))
+              }
+              placeholder='例: 技術交流会'
             />
           </div>
-          
+
           <div className={styles.formGroup}>
-            <label htmlFor="eventDate">イベント日付:</label>
+            <label htmlFor='eventDate'>イベント日付:</label>
             <input
-              type="date"
-              id="eventDate"
+              type='date'
+              id='eventDate'
               value={eventInfo.eventDate}
-              onChange={(e) => setEventInfo(prev => ({ ...prev, eventDate: e.target.value }))}
+              onChange={(e) =>
+                setEventInfo((prev) => ({ ...prev, eventDate: e.target.value }))
+              }
             />
           </div>
-          
+
           <div className={styles.formGroup}>
-            <label htmlFor="memo">メモ:</label>
+            <label htmlFor='memo'>メモ:</label>
             <textarea
-              id="memo"
+              id='memo'
               value={eventInfo.memo}
-              onChange={(e) => setEventInfo(prev => ({ ...prev, memo: e.target.value }))}
-              placeholder="例: エンジニアのAさん"
+              onChange={(e) =>
+                setEventInfo((prev) => ({ ...prev, memo: e.target.value }))
+              }
+              placeholder='例: エンジニアのAさん'
               rows={3}
             />
           </div>
@@ -354,7 +379,9 @@ export default function ExchangePage() {
             disabled={!selectedProfileId || exchanging}
             className={styles.exchangeButton}
           >
+
             {exchanging ? '処理中...' : existingConnectionId ? 'フレンド情報を更新する' : 'フレンド情報を登録する'}
+
           </button>
         </div>
       </main>

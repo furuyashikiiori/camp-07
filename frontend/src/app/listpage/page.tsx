@@ -37,7 +37,7 @@ export default function ListPage() {
       }
 
       try {
-        const response = await authenticatedFetch(`http://localhost:8080/api/users/${user.id}/connections`);
+        const response = await authenticatedFetch(`/api/users/${user.id}/connections`);
         if (!response.ok) {
           throw new Error('交換済みユーザーの取得に失敗しました');
         }
