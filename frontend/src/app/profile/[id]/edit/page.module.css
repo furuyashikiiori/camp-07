@@ -184,3 +184,386 @@
 .backButton:hover {
   background-color: #0056b3;
 }
+
+/* モーダルスタイル - 既存UIに合わせて再デザイン */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid rgba(119, 160, 237, 0.3);
+  background: rgba(191, 225, 250, 0.3);
+  border-radius: 16px 16px 0 0;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #77a0ed;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #77a0ed;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(119, 160, 237, 0.2);
+  color: #0056b3;
+}
+
+.modalContent {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.presetSection {
+  margin-bottom: 32px;
+}
+
+.presetSection h4 {
+  margin-bottom: 16px;
+  color: #77a0ed;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.presetButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 2px solid rgba(119, 160, 237, 0.3);
+  border-radius: 12px;
+  background: rgba(191, 225, 250, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: #77a0ed;
+}
+
+.presetButton:hover {
+  border-color: #77a0ed;
+  background: rgba(191, 225, 250, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(119, 160, 237, 0.3);
+}
+
+.presetIcon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 8px;
+  filter: brightness(0.8);
+}
+
+.presetButton span {
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.customSection h4 {
+  margin-bottom: 16px;
+  color: #77a0ed;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.customButton {
+  display: flex;
+  align-items: center;
+  padding: 18px;
+  border: 2px dashed rgba(119, 160, 237, 0.5);
+  border-radius: 12px;
+  background: rgba(191, 225, 250, 0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-decoration: none;
+  color: #77a0ed;
+}
+
+.customButton:hover {
+  border-color: #77a0ed;
+  background: rgba(191, 225, 250, 0.4);
+  transform: translateY(-1px);
+}
+
+.customButton span:first-child {
+  font-size: 24px;
+  margin-right: 16px;
+}
+
+.customButton span:last-child {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* リンク入力コンポーネントスタイル */
+.linksSection {
+  margin: 32px 0;
+}
+
+.linkInputContainer {
+  border: 1px solid rgba(119, 160, 237, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background: rgba(191, 225, 250, 0.2);
+  transition: all 0.2s ease;
+}
+
+.linkInputContainer:hover {
+  background: rgba(191, 225, 250, 0.3);
+  border-color: #77a0ed;
+}
+
+.linkHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(119, 160, 237, 0.2);
+}
+
+.presetHeader {
+  display: flex;
+  align-items: center;
+}
+
+.linkIcon {
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
+  filter: brightness(0.8);
+}
+
+.linkTitle {
+  font-weight: bold;
+  color: #77a0ed;
+  font-size: 18px;
+}
+
+.customHeader {
+  display: flex;
+  align-items: center;
+}
+
+.removeButton {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.linkInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.linkInput {
+  padding: 12px;
+  border: 1px solid rgba(119, 160, 237, 0.3);
+  border-radius: 8px;
+  font-size: 16px;
+  color: #77a0ed;
+  background: rgba(191, 225, 250, 0.4);
+  transition: all 0.2s ease;
+}
+
+.linkInput:focus {
+  outline: none;
+  border-color: #77a0ed;
+  background: rgba(191, 225, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(119, 160, 237, 0.1);
+}
+
+.linkTextarea {
+  padding: 12px;
+  border: 1px solid rgba(119, 160, 237, 0.3);
+  border-radius: 8px;
+  font-size: 16px;
+  color: #77a0ed;
+  background: rgba(191, 225, 250, 0.4);
+  resize: vertical;
+  min-height: 80px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.linkTextarea:focus {
+  outline: none;
+  border-color: #77a0ed;
+  background: rgba(191, 225, 250, 0.6);
+  box-shadow: 0 0 0 3px rgba(119, 160, 237, 0.1);
+}
+
+.fileLabel {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: bold;
+  color: #77a0ed;
+  margin-top: 8px;
+}
+
+.fileInput {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid rgba(119, 160, 237, 0.3);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #77a0ed;
+  background: rgba(191, 225, 250, 0.4);
+  transition: all 0.2s ease;
+}
+
+.fileInput:focus {
+  outline: none;
+  border-color: #77a0ed;
+  background: rgba(191, 225, 250, 0.6);
+}
+
+.addLinkButton {
+  background: #77a0ed;
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.addLinkButton:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(119, 160, 237, 0.4);
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modalHeader {
+    padding: 20px;
+  }
+  
+  .modalContent {
+    padding: 20px;
+  }
+  
+  .presetGrid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .presetButton {
+    padding: 12px 8px;
+  }
+  
+  .presetIcon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .presetButton span {
+    font-size: 12px;
+  }
+  
+  .linkInputContainer {
+    padding: 16px;
+  }
+  
+  .linkHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .removeButton {
+    align-self: flex-end;
+  }
+  
+  .linkIcon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .linkTitle {
+    font-size: 16px;
+  }
+  
+  .customButton {
+    padding: 16px;
+  }
+  
+  .customButton span:first-child {
+    font-size: 20px;
+    margin-right: 12px;
+  }
+  
+  .customButton span:last-child {
+    font-size: 14px;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { authenticatedFetch } from '@/utils/auth';
@@ -45,13 +46,178 @@ type OptionalField = {
   value: string;
 };
 
+type PresetLinkType = {
+  name: string;
+  icon_url: string;
+  base_url: string;
+  placeholder: string;
+};
+
 type OtherLink = {
-  id?: number;
+  id?: number | string;
+  isPreset: boolean;
+  presetType?: PresetLinkType;
   label: string;
   url: string;
   description: string;
   iconFile?: File;
+  isNew?: boolean;
+  isDeleted?: boolean;
 };
+
+// リンク選択モーダルコンポーネント
+function LinkSelectionModal({
+  isOpen,
+  onClose,
+  onSelectPreset,
+  onSelectOther,
+  presetTypes,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectPreset: (presetType: PresetLinkType) => void;
+  onSelectOther: () => void;
+  presetTypes: PresetLinkType[];
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <h3>リンクタイプを選択</h3>
+          <button onClick={onClose} className={styles.closeButton}>
+            ×
+          </button>
+        </div>
+
+        <div className={styles.modalContent}>
+          <div className={styles.presetSection}>
+            <div className={styles.presetGrid}>
+              {presetTypes.map((preset, index) => (
+                <button
+                  key={preset.name || `preset-${index}`}
+                  onClick={() => onSelectPreset(preset)}
+                  className={styles.presetButton}
+                >
+                  <Image
+                    src={preset.icon_url}
+                    alt={preset.name}
+                    className={styles.presetIcon}
+                    width={24}
+                    height={24}
+                  />
+                  <span>{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.customSection}>
+            <h4>その他のリンク</h4>
+            <button onClick={onSelectOther} className={styles.customButton}>
+              <span>📎</span>
+              <span>カスタムリンクを作成</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 個別リンク入力コンポーネント
+function LinkInputComponent({
+  link,
+  index,
+  onUpdate,
+  onRemove,
+}: {
+  link: OtherLink;
+  index: number;
+  onUpdate: (index: number, updatedLink: OtherLink) => void;
+  onRemove: (index: number) => void;
+}) {
+  const handleChange = (field: keyof OtherLink, value: string | File) => {
+    const updatedLink = { ...link, [field]: value };
+    onUpdate(index, updatedLink);
+  };
+
+  return (
+    <div className={styles.linkInputContainer}>
+      <div className={styles.linkHeader}>
+        {link.isPreset && link.presetType ? (
+          <div className={styles.presetHeader}>
+            <Image
+              src={link.presetType.icon_url}
+              alt={link.presetType.name}
+              className={styles.linkIcon}
+              width={24}
+              height={24}
+            />
+            <span className={styles.linkTitle}>{link.presetType.name}</span>
+          </div>
+        ) : (
+          <div className={styles.customHeader}>
+            <span className={styles.linkTitle}>
+              {link.label || "カスタムリンク"}
+            </span>
+          </div>
+        )}
+        <button
+          type='button'
+          onClick={() => onRemove(index)}
+          className={styles.removeButton}
+        >
+          削除
+        </button>
+      </div>
+
+      <div className={styles.linkInputs}>
+        {!link.isPreset && (
+          <>
+            <input
+              type='text'
+              placeholder='リンク名'
+              value={link.label}
+              onChange={(e) => handleChange("label", e.target.value)}
+              className={styles.linkInput}
+            />
+            <label className={styles.fileLabel}>
+              アイコン画像（任意）:
+              <input
+                type='file'
+                accept='image/*'
+                onChange={(e) =>
+                  handleChange(
+                    "iconFile",
+                    e.target.files?.[0] || new File([], "")
+                  )
+                }
+                className={styles.fileInput}
+              />
+            </label>
+          </>
+        )}
+
+        <input
+          type='url'
+          placeholder='URL'
+          value={link.url}
+          onChange={(e) => handleChange("url", e.target.value)}
+          className={styles.linkInput}
+        />
+
+        <textarea
+          placeholder='リンクの説明（任意）'
+          value={link.description}
+          onChange={(e) => handleChange("description", e.target.value)}
+          className={styles.linkTextarea}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function ProfileEditPage() {
   const params = useParams<{ id: string }>();
@@ -60,6 +226,8 @@ export default function ProfileEditPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [iconFile, setIconFile] = useState<File | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [presetTypes, setPresetTypes] = useState<PresetLinkType[]>([]);
   
   const [formData, setFormData] = useState({
     profileTitle: '',
@@ -76,8 +244,27 @@ export default function ProfileEditPage() {
       github: '',
     },
     optionalFields: [{ label: '', value: '' }] as OptionalField[],
-    otherLinks: [{ label: '', url: '', description: '' }] as OtherLink[],
+    otherLinks: [] as OtherLink[],
   });
+  
+  // 元の既存リンクを保持（変更差分計算用）
+  const [originalLinks, setOriginalLinks] = useState<LinkItem[]>([]);
+
+  // プリセットリンクタイプを取得
+  useEffect(() => {
+    const fetchPresetTypes = async () => {
+      try {
+        const response = await authenticatedFetch('/api/links/types/common');
+        if (response.ok) {
+          const data = await response.json();
+          setPresetTypes(data.link_types || []);
+        }
+      } catch (error) {
+        console.error('プリセットリンクタイプの取得エラー:', error);
+      }
+    };
+    fetchPresetTypes();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -138,12 +325,18 @@ export default function ProfileEditPage() {
           otherLinks: otherLinks.length > 0 
             ? otherLinks.map(link => ({ 
                 id: link.id, 
+                isPreset: presetTypes.some(preset => preset.name === link.title),
+                presetType: presetTypes.find(preset => preset.name === link.title),
                 label: link.title, 
                 url: link.url, 
-                description: link.description || '' 
+                description: link.description || '',
+                isNew: false
               }))
-            : [{ label: '', url: '', description: '' }],
+            : [],
         });
+        
+        // 元のリンク情報を保存
+        setOriginalLinks(existingLinks);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'エラーが発生しました');
       } finally {
@@ -151,8 +344,10 @@ export default function ProfileEditPage() {
       }
     };
 
-    fetchData();
-  }, [params.id]);
+    if (presetTypes.length > 0) {
+      fetchData();
+    }
+  }, [params.id, presetTypes]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -190,12 +385,6 @@ export default function ProfileEditPage() {
     }
   };
 
-  const handleOtherLinkIconChange = (index: number, file: File | null) => {
-    const updated = [...formData.otherLinks];
-    updated[index].iconFile = file || undefined;
-    setFormData({ ...formData, otherLinks: updated });
-  };
-
   const addOptionalField = () => {
     setFormData({
       ...formData,
@@ -203,11 +392,68 @@ export default function ProfileEditPage() {
     });
   };
 
-  const addOtherLink = () => {
+  const generateLinkId = () => {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  };
+
+  const handleSelectPreset = (presetType: PresetLinkType) => {
+    const newLink: OtherLink = {
+      id: generateLinkId(),
+      isPreset: true,
+      presetType,
+      label: presetType.name,
+      url: '',
+      description: '',
+      isNew: true,
+    };
+
+    console.log('プリセットリンク追加:', newLink);
+    
     setFormData({
       ...formData,
-      otherLinks: [...formData.otherLinks, { label: '', url: '', description: '' }],
+      otherLinks: [...formData.otherLinks, newLink],
     });
+    setIsModalOpen(false);
+  };
+
+  const handleSelectOther = () => {
+    const newLink: OtherLink = {
+      id: generateLinkId(),
+      isPreset: false,
+      label: '',
+      url: '',
+      description: '',
+      isNew: true,
+    };
+
+    console.log('カスタムリンク追加:', newLink);
+    
+    setFormData({
+      ...formData,
+      otherLinks: [...formData.otherLinks, newLink],
+    });
+    setIsModalOpen(false);
+  };
+
+  const updateLink = (index: number, updatedLink: OtherLink) => {
+    const updated = [...formData.otherLinks];
+    updated[index] = updatedLink;
+    setFormData({ ...formData, otherLinks: updated });
+  };
+
+  const removeLink = (index: number) => {
+    const linkToRemove = formData.otherLinks[index];
+    
+    // 新規リンクの場合は単純に配列から削除
+    if (linkToRemove.isNew) {
+      const updated = formData.otherLinks.filter((_, i) => i !== index);
+      setFormData({ ...formData, otherLinks: updated });
+    } else {
+      // 既存リンクの場合は削除フラグを立てる（UIからは非表示）
+      const updated = [...formData.otherLinks];
+      updated[index] = { ...updated[index], isDeleted: true };
+      setFormData({ ...formData, otherLinks: updated });
+    }
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -269,6 +515,7 @@ export default function ProfileEditPage() {
       await updateOptionalFields();
 
       // リンクの更新
+      console.log('全リンクデータ送信前:', formData.otherLinks);
       await updateLinks();
 
       alert('プロフィールを更新しました！');
@@ -313,9 +560,9 @@ export default function ProfileEditPage() {
   };
 
   const updateLinks = async () => {
-    // 既存のリンクをすべて削除
-    const existingLinks = [...formData.otherLinks.filter(link => link.id)];
-    for (const link of existingLinks) {
+    // 削除対象のリンクを処理
+    const linksToDelete = formData.otherLinks.filter(link => link.isDeleted && link.id && !link.isNew);
+    for (const link of linksToDelete) {
       try {
         await authenticatedFetch(`/api/links/${link.id}`, {
           method: 'DELETE',
@@ -343,18 +590,25 @@ export default function ProfileEditPage() {
     try {
       const response = await authenticatedFetch('/api/links/types/common');
       if (response.ok) {
-        const commonTypes = await response.json();
-        presetIcons = commonTypes.reduce(
-          (acc: Record<string, string>, type: { name: string; icon_url: string }) => {
-            const key = type.name.includes('/') ? type.name.split('/')[0] : type.name;
-            acc[key] = type.icon_url;
-            return acc;
-          },
-          {}
-        );
+        const data = await response.json();
+        const commonTypes = data.link_types || data || [];
+        if (Array.isArray(commonTypes)) {
+          presetIcons = commonTypes.reduce(
+            (acc: Record<string, string>, type: { name: string; icon_url: string }) => {
+              const key = type.name.includes('/') ? type.name.split('/')[0] : type.name;
+              acc[key] = type.icon_url;
+              return acc;
+            },
+            {}
+          );
+        }
       }
     } catch (error) {
       console.error('プリセットアイコン情報の取得エラー:', error);
+    }
+    
+    // フォールバック用のデフォルトアイコン
+    if (Object.keys(presetIcons).length === 0) {
       presetIcons = {
         Twitter: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg',
         Instagram: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg',
@@ -373,6 +627,7 @@ export default function ProfileEditPage() {
       if (link.url.trim()) {
         try {
           const snsLinkData = {
+            user_id: profile?.user_id,
             profile_id: Number(params.id),
             title: link.title,
             url: link.url,
@@ -389,17 +644,64 @@ export default function ProfileEditPage() {
       }
     }
 
-    // 任意のリンクを保存
-    for (const link of formData.otherLinks) {
-      if (link.label.trim() && link.url.trim()) {
+    // 既存リンクの更新処理
+    const linksToUpdate = formData.otherLinks.filter(link => 
+      !link.isNew && !link.isDeleted && link.id
+    );
+    
+    for (const link of linksToUpdate) {
+      // 元のリンクと比較して変更があるかチェック
+      const originalLink = originalLinks.find(orig => orig.id === link.id);
+      if (originalLink && (
+        originalLink.title !== link.label ||
+        originalLink.url !== link.url ||
+        originalLink.description !== (link.description || '')
+      )) {
         try {
-          let imageUrl = null;
-          if (link.iconFile) {
+          let imageUrl = originalLink.image_url; // デフォルトは既存のアイコンを保持
+
+          if (link.isPreset && link.presetType) {
+            imageUrl = link.presetType.icon_url;
+          } else if (link.iconFile && link.iconFile.size > 0) {
             const iconBase64 = await fileToBase64(link.iconFile);
             imageUrl = `data:${link.iconFile.type};base64,${iconBase64}`;
           }
 
           const linkData = {
+            title: link.label,
+            url: link.url,
+            description: link.description || null,
+            image_url: imageUrl,
+          };
+
+          await authenticatedFetch(`/api/links/${link.id}`, {
+            method: 'PUT',
+            body: JSON.stringify(linkData),
+          });
+        } catch (error) {
+          console.error('リンクの更新エラー:', error);
+        }
+      }
+    }
+
+    // 新規リンクの追加処理
+    const linksToAdd = formData.otherLinks.filter(link => link.isNew && !link.isDeleted);
+    console.log('追加対象のリンク:', linksToAdd);
+    
+    for (const link of linksToAdd) {
+      if (link.url.trim()) {
+        try {
+          let imageUrl = null;
+
+          if (link.isPreset && link.presetType) {
+            imageUrl = link.presetType.icon_url;
+          } else if (link.iconFile && link.iconFile.size > 0) {
+            const iconBase64 = await fileToBase64(link.iconFile);
+            imageUrl = `data:${link.iconFile.type};base64,${iconBase64}`;
+          }
+
+          const linkData = {
+            user_id: profile?.user_id,
             profile_id: Number(params.id),
             title: link.label,
             url: link.url,
@@ -407,13 +709,27 @@ export default function ProfileEditPage() {
             image_url: imageUrl,
           };
 
-          await authenticatedFetch('/api/links', {
+          console.log('新規リンク作成データ:', linkData);
+          
+          const response = await authenticatedFetch('/api/links', {
             method: 'POST',
             body: JSON.stringify(linkData),
           });
+
+          console.log('新規リンク作成レスポンス:', response.status, response.ok);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('新規リンク作成エラー詳細:', errorData);
+          } else {
+            const resultData = await response.json().catch(() => ({}));
+            console.log('新規リンク作成成功:', resultData);
+          }
         } catch (error) {
-          console.error('任意リンクの保存エラー:', error);
+          console.error('リンクの保存エラー:', error);
         }
+      } else {
+        console.log('URLが空のため追加をスキップ:', link);
       }
     }
   };
@@ -562,78 +878,33 @@ export default function ProfileEditPage() {
             任意項目を追加 +
           </button>
 
-          <fieldset className={styles.snsSection}>
-            <h3>SNSリンク</h3>
+          <div className={styles.linksSection}>
+            <h3>リンク</h3>
 
-            <label>
-              Twitter:
-              <input
-                type="url"
-                name="twitter"
-                value={formData.sns.twitter}
-                onChange={handleChange}
-              />
-            </label>
+            {formData.otherLinks
+              .filter(link => !link.isDeleted)
+              .map((link) => {
+                // 元のインデックスを維持するために元配列からインデックスを探す
+                const originalIndex = formData.otherLinks.findIndex(l => l.id === link.id);
+                return (
+                  <LinkInputComponent
+                    key={link.id || originalIndex}
+                    link={link}
+                    index={originalIndex}
+                    onUpdate={updateLink}
+                    onRemove={removeLink}
+                  />
+                );
+              })}
 
-            <label>
-              Instagram:
-              <input
-                type="url"
-                name="instagram"
-                value={formData.sns.instagram}
-                onChange={handleChange}
-              />
-            </label>
-
-            <label>
-              GitHub:
-              <input
-                type="url"
-                name="github"
-                value={formData.sns.github}
-                onChange={handleChange}
-              />
-            </label>
-          </fieldset>
-
-          <h3>任意のリンクです</h3>
-          {formData.otherLinks.map((link, index) => (
-            <div key={index} className={styles.optionalField}>
-              <input
-                type="text"
-                placeholder="リンク名"
-                value={link.label}
-                onChange={(e) => handleChange(e, index, 'label', 'otherLinks')}
-              />
-              <input
-                type="url"
-                placeholder="URL"
-                value={link.url}
-                onChange={(e) => handleChange(e, index, 'url', 'otherLinks')}
-              />
-              <textarea
-                placeholder="リンクの説明（任意）"
-                value={link.description}
-                onChange={(e) => handleChange(e, index, 'description', 'otherLinks')}
-              />
-              <label>
-                アイコン画像（任意）:
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleOtherLinkIconChange(index, e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addOtherLink}
-            className={styles.addOptionalButton}
-          >
-            任意リンクを追加 +
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className={styles.addLinkButton}
+            >
+              リンクを追加 +
+            </button>
+          </div>
 
           <div className={styles.buttonGroup}>
             <button type="submit" className={styles.submitButton}>
@@ -649,6 +920,14 @@ export default function ProfileEditPage() {
           </div>
         </form>
       </div>
+
+      <LinkSelectionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelectPreset={handleSelectPreset}
+        onSelectOther={handleSelectOther}
+        presetTypes={presetTypes}
+      />
     </div>
   );
 }
