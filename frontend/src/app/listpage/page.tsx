@@ -27,6 +27,16 @@ export default function ListPage() {
   const [openDate, setOpenDate] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // タブ切り替え用の状態: 'date'=日付順, 'following'=フォロー中
+  // LocalStorageから前回の選択状態を復元
+  const [activeTab, setActiveTab] = useState<'date' | 'following'>(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('listPageTab');
+      return (savedTab === 'following' ? 'following' : 'date');
+    }
+    return 'date';
+  });
 
   useEffect(() => {
     const fetchConnections = async () => {
@@ -124,12 +134,42 @@ export default function ListPage() {
       <div className={styles.overlay}>
         <h1 className={styles.title}>Exchange List</h1>
 
+        {/* タブ切り替えUI */}
+        <div className={styles.tabContainer}>
+          <div className={styles.tabButtons}>
+            <button 
+              className={`${styles.tab} ${activeTab === 'date' ? styles.tabActive : ''}`}
+              onClick={() => {
+                setActiveTab('date');
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('listPageTab', 'date');
+                }
+              }}
+            >
+              日付順
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'following' ? styles.tabActive : ''}`}
+              onClick={() => {
+                setActiveTab('following');
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('listPageTab', 'following');
+                }
+              }}
+            >
+              フォロー中
+            </button>
+          </div>
+        </div>
+
         {contacts.length === 0 && (
           <p className={styles.message}>誰かとQRコードを交換してください</p>
         )}
 
-        {/* ─ 年 → 日付 → 名前 ─ */}
-        {Object.keys(grouped).sort().reverse().map(year => (
+        {activeTab === 'date' && contacts.length > 0 && (
+          <>
+            {/* 日付順タブのコンテンツ - 年 → 日付 → 名前 */}
+            {Object.keys(grouped).sort().reverse().map(year => (
           <section key={year} className={styles.section}>
             {/* 年トグル */}
             <button
@@ -200,6 +240,29 @@ export default function ListPage() {
               })}
           </section>
         ))}
+          </>
+        )}
+
+        {/* フォロー中タブのコンテンツ */}
+        {activeTab === 'following' && contacts.length > 0 && (
+          <div className={styles.followingList}>
+            {contacts
+              .sort((a, b) => new Date(b.exchangeDate).getTime() - new Date(a.exchangeDate).getTime())
+              .map(contact => (
+                <Link 
+                  key={contact.id}
+                  href={`/profile/${contact.id}`}
+                  className={styles.followingItem}
+                >
+                  <div>
+                    <div className={styles.followingName}>{contact.name}</div>
+                    <div className={styles.followingProfile}>{contact.profileTitle}</div>
+                  </div>
+                </Link>
+              ))
+            }
+          </div>
+        )}
       </div>
     </div>
   );

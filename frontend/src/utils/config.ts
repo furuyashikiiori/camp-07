@@ -7,6 +7,11 @@ export const getApiBaseUrl = (): string => {
     return process.env.NEXT_PUBLIC_API_BASE_URL;
   }
 
+  // 後方互換性のために古い名前もチェック
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+
   // 開発環境のデフォルト
   if (process.env.NODE_ENV === "development") {
     return "http://localhost:8080";
