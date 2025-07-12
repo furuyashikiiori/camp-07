@@ -760,7 +760,7 @@ export default function ProfileEditPage() {
   return (
     <div className={styles.container}>
       <Link href={`/profile/${params.id}`} className={styles.backLink}>
-        &lt; Back Profile
+        ⬅︎ Profile
       </Link>
 
       <div className={styles.overlay}>

@@ -247,7 +247,7 @@ export default function ProfilePage() {
   return (
     <div className={styles.container}>
       <Link href='/' className={styles.backLink}>
-        &lt; Back StartPage
+        ⬅︎ HOME
       </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>
