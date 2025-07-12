@@ -36,7 +36,12 @@
 .message {
   color: #007bff;
   text-align: center;
-  margin-bottom: 30px;
+  margin: 40px 0;
+  font-size: 1.2rem;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .backLink {
@@ -165,4 +170,119 @@
   font-size: 0.8rem;
   color: #777;
   padding-left: 18px;
+}
+
+/* タブ切り替え用のスタイル */
+.tabContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #e0e0e0;
+  position: relative;
+}
+
+.tabButtons {
+  display: flex;
+  gap: 20px;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 0 15px;
+  border-radius: 20px 20px 0 0;
+}
+
+.tab {
+  padding: 12px 25px;
+  border: none;
+  background: none;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.tab:hover {
+  color: #007bff;
+}
+
+.tabActive {
+  color: #007bff;
+  font-weight: 600;
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #007bff;
+  border-radius: 3px 3px 0 0;
+  animation: tabIndicator 0.3s ease forwards;
+}
+
+@keyframes tabIndicator {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* フォロー中タブの表示用スタイル */
+.followingList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.followingItem {
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.followingItem::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  background-color: #007bff;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s ease;
+}
+
+.followingItem:hover {
+  background-color: #f0f8ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.followingItem:hover::after {
+  transform: scaleY(1);
+}
+
+.followingName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 4px;
+}
+
+.followingProfile {
+  font-size: 0.9rem;
+  color: #666;
 }
