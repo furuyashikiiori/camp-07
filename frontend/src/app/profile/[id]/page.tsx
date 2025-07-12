@@ -163,6 +163,18 @@ export default function ProfileDetail() {
                 // 既存のコネクション情報を取得 (自分のプロフィールでない場合のみ)
                 if (!isOwner && profileData.id) {
                   try {
+                    // セッションストレージから参照元を取得
+                    const referrer = sessionStorage.getItem("referrer");
+                    
+                    // リストページからの遷移の場合は必ず接続済みとして扱う
+                    // 空のコネクションIDを仮設定して、後で本物を探す
+                    if (referrer === "listpage") {
+                      setFriendForm((prev) => ({
+                        ...prev,
+                        existingConnectionId: -1, // 仮のID、後で上書きされる
+                      }));
+                    }
+                    
                     // 自分のプロフィールから相手のプロフィールへのコネクションを確認
                     const connectionsResponse = await authenticatedFetch(
                       `/api/connections?profile_id=${firstProfileId}`
@@ -211,6 +223,18 @@ export default function ProfileDetail() {
                               eventDate: reverseConnection.event_date || "",
                               memo: reverseConnection.memo || "",
                               existingConnectionId: reverseConnection.id,
+                            }));
+                          } else if (referrer === "listpage") {
+                            // リストページからの遷移なのにコネクションが見つからない場合
+                            // フレンド情報編集ボタンを表示するため、ダミーのIDを残す
+                            console.warn("リストからの遷移だがコネクション情報が見つかりませんでした");
+                            // 空のデータでも編集可能にする
+                            setFriendForm((prev) => ({
+                              ...prev,
+                              eventName: "",
+                              eventDate: "",
+                              memo: "",
+                              existingConnectionId: -1, // 仮のID
                             }));
                           }
                         }
@@ -357,29 +381,106 @@ export default function ProfileDetail() {
 
     try {
       let response;
+      let isUpdate = true;
+      
+      // セッションストレージから参照元を取得
+      const referrer = sessionStorage.getItem("referrer");
+      
+      // リストページからの遷移の場合、必ず更新処理を行う
+      if (referrer === "listpage") {
+        isUpdate = true;
+      } else {
+        // それ以外の場合は既存のコネクションIDに基づいて判断
+        isUpdate = !!friendForm.existingConnectionId;
+      }
 
-      // 既存のコネクションが存在する場合は更新、そうでなければ新規作成
-      if (friendForm.existingConnectionId) {
-        // 既存のコネクションを更新
-        response = await authenticatedFetch(
-          `/api/connections/${friendForm.existingConnectionId}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              event_name: friendForm.eventName,
-              event_date: friendForm.eventDate,
-              memo: friendForm.memo,
-            }),
+      // 更新処理
+      if (isUpdate) {
+        if (friendForm.existingConnectionId && friendForm.existingConnectionId > 0) {
+          // 正常な既存のコネクションがある場合は更新
+          response = await authenticatedFetch(
+            `/api/connections/${friendForm.existingConnectionId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                event_name: friendForm.eventName,
+                event_date: friendForm.eventDate,
+                memo: friendForm.memo,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("フレンド情報の更新に失敗しました");
           }
-        );
+        } else {
+          // 仮ID(-1)が設定されている場合、リストページから来たが実際のコネクションが見つからない
+          // この場合は新規作成する
+          console.log("リストページからの遷移ですが、コネクションIDが見つからないため新規作成します");
+          
+          const myToFriendResponse = await authenticatedFetch(
+            "/api/connections",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                profile_id: selectedProfileId,
+                connect_user_profile_id: profile.id,
+                event_name: friendForm.eventName,
+                event_date: friendForm.eventDate,
+                memo: friendForm.memo,
+              }),
+            }
+          );
 
-        if (!response.ok) {
-          throw new Error("フレンド情報の更新に失敗しました");
+          if (!myToFriendResponse.ok) {
+            throw new Error("フレンド情報の更新に失敗しました");
+          }
+          
+          // IDを取得して状態を更新
+          const data = await myToFriendResponse.json();
+          if (data?.connection?.id) {
+            setFriendForm((prev) => ({
+              ...prev,
+              existingConnectionId: data.connection.id,
+            }));
+          }
+        }
+        
+        // 相互のコネクションの存在確認のみ行い、更新はしない
+        try {
+          // 相手のプロフィールからのコネクションを検索（存在確認のみ）
+          const connectionsResponse = await authenticatedFetch(
+            `/api/connections?profile_id=${profile.id}`
+          );
+          
+          if (connectionsResponse.ok) {
+            const connectionsData = await connectionsResponse.json();
+            const reverseConnection = connectionsData.connections?.find(
+              (conn: { connect_user_profile_id: number }) =>
+                conn.connect_user_profile_id === selectedProfileId
+            );
+            
+            if (reverseConnection && reverseConnection.id) {
+              // 相手側のコネクションの存在を確認するだけで、更新は行わない
+              console.log("相互コネクションの存在を確認しました。相手側の情報は更新しません。");
+            }
+          }
+        } catch (err) {
+          console.error("相互コネクション確認エラー:", err);
+          // エラーがあっても処理は継続
         }
       } else {
+        // 新規作成処理
+        // QRコード交換のケースかどうかを判断（セッションストレージから参照元を取得）
+        const referrer = sessionStorage.getItem("referrer");
+        const isQRExchange = referrer === "qrpage" || referrer === "exchange";
+        
         // 自分から相手へのコネクションを作成
         const myToFriendResponse = await authenticatedFetch(
           "/api/connections",
@@ -397,28 +498,37 @@ export default function ProfileDetail() {
             }),
           }
         );
-
-        // 相手から自分へのコネクションを作成
-        // （相互関係を作成する場合のみ）
-        const friendToMyResponse = await authenticatedFetch(
-          "/api/connections",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              profile_id: profile.id,
-              connect_user_profile_id: selectedProfileId,
-              event_name: friendForm.eventName,
-              event_date: friendForm.eventDate,
-              memo: friendForm.memo,
-            }),
-          }
-        );
-
-        if (!myToFriendResponse.ok || !friendToMyResponse.ok) {
+        
+        if (!myToFriendResponse.ok) {
           throw new Error("フレンド追加に失敗しました");
+        }
+        
+        // QRコード交換のケースのみ、相手から自分へのコネクションも作成（相互関係）
+        if (isQRExchange) {
+          console.log("QRコード交換のケースなので、相互コネクションを作成します");
+          const friendToMyResponse = await authenticatedFetch(
+            "/api/connections",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                profile_id: profile.id,
+                connect_user_profile_id: selectedProfileId,
+                // QRコード交換時は相手側も同じイベント情報を持つ
+                event_name: friendForm.eventName,
+                event_date: friendForm.eventDate,
+                memo: friendForm.memo,
+              }),
+            }
+          );
+          
+          if (!friendToMyResponse.ok) {
+            console.warn("相互コネクション作成に失敗しましたが、処理を継続します");
+          }
+        } else {
+          console.log("通常のフレンド追加のため、自分側のコネクションのみを作成します");
         }
 
         // 新規作成後、IDを取得して状態を更新
@@ -435,9 +545,7 @@ export default function ProfileDetail() {
 
       setAddFriendResult({
         success: true,
-        message: friendForm.existingConnectionId
-          ? "フレンド情報を更新しました！"
-          : "フレンドを追加しました！",
+        message: "フレンド情報を更新しました！",
       });
 
       // フォームを閉じる
@@ -700,16 +808,12 @@ export default function ProfileDetail() {
                 className={styles.addFriendButton}
                 onClick={toggleFriendForm}
               >
-                {friendForm.existingConnectionId
-                  ? "フレンド情報編集"
-                  : "フレンド追加"}
+                フレンド情報編集
               </button>
             ) : (
               <form onSubmit={handleAddFriend} className={styles.friendForm}>
                 <h3>
-                  {friendForm.existingConnectionId
-                    ? "フレンド情報を編集"
-                    : "フレンド追加"}
+                  フレンド情報を編集
                 </h3>
 
                 {/* プロフィール選択は削除し、選択されたプロフィールの表示のみにする */}
