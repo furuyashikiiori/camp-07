@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/models"
+	"backend/utils"
 	"context"
 	"database/sql"
 	"encoding/base64"
@@ -19,7 +20,20 @@ import (
 
 // App はアプリケーションのコンテキストを保持します
 type App struct {
-	DB *sql.DB
+	DB               *sql.DB
+	CloudinaryClient *utils.CloudinaryClient
+}
+
+// NewApp は新しいAppインスタンスを作成します
+func NewApp(db *sql.DB) (*App, error) {
+	cloudinaryClient, err := utils.NewCloudinaryClient()
+	if err != nil {
+		// Cloudinaryが設定されていない場合はログを出力してnilを設定
+		fmt.Printf("Cloudinary設定なし（ローカルファイル保存を使用）: %v\n", err)
+		return &App{DB: db, CloudinaryClient: nil}, nil
+	}
+
+	return &App{DB: db, CloudinaryClient: cloudinaryClient}, nil
 }
 
 // CreateProfile は新しいプロフィールを作成するハンドラーです
@@ -67,27 +81,37 @@ func (app *App) CreateProfile(c *gin.Context) {
 			return
 		}
 
-		// ディレクトリ確認
-		uploadDir := "./uploads"
-		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-			if err := os.MkdirAll(uploadDir, 0755); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
+		// Cloudinaryが設定されている場合はCloudinaryを使用
+		if app.CloudinaryClient != nil {
+			filename := uuid.New().String()
+			iconURL, err = app.CloudinaryClient.UploadImage(context.Background(), iconData, filename)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "画像のアップロードに失敗しました"})
 				return
 			}
+		} else {
+			// ローカルファイル保存（開発環境用）
+			uploadDir := "./uploads"
+			if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+				if err := os.MkdirAll(uploadDir, 0755); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
+					return
+				}
+			}
+
+			// ユニークなファイル名を生成
+			filename := uuid.New().String() + ".png"
+			iconPath = filepath.Join(uploadDir, filename)
+
+			// ファイルに保存
+			if err := os.WriteFile(iconPath, iconData, 0644); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
+				return
+			}
+
+			// 公開URL設定（開発環境用）
+			iconURL = fmt.Sprintf("/api/uploads/%s", filename)
 		}
-
-		// ユニークなファイル名を生成
-		filename := uuid.New().String() + ".png"
-		iconPath = filepath.Join(uploadDir, filename)
-
-		// ファイルに保存
-		if err := os.WriteFile(iconPath, iconData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
-			return
-		}
-
-		// 公開URL設定
-		iconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", req.UserID)
 	}
 
 	// 誕生日の処理
