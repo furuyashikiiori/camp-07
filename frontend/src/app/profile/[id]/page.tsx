@@ -88,10 +88,19 @@ export default function ProfileDetail() {
   } | null>(null);
   const [userProfiles, setUserProfiles] = useState<Profile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
+  const [accessChecked, setAccessChecked] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 認証チェック
+        const user = getUser();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+
         const [profileResponse, optionResponse] = await Promise.all([
           authenticatedFetch(`/api/profiles/${params.id}`),
           authenticatedFetch(`/api/profiles/${params.id}/option-profiles`),
@@ -116,14 +125,16 @@ export default function ProfileDetail() {
           console.log("Option profiles response error:", optionResponse.status);
         }
 
-        // ログインユーザーのプロフィール取得
-        const user = getUser();
+        // ユーザー情報は既に取得済み
         
         // プロフィールの所有者かどうかを判定
         if (user && profileData.user_id === Number(user.id)) {
           setIsOwner(true);
+          setHasAccess(true); // 所有者は常にアクセス可能
         } else {
           setIsOwner(false);
+          // 所有者でない場合、交換済みかどうかをチェック
+          await checkExchangeRelation(user, profileData.id);
         }
         if (user) {
           try {
@@ -220,11 +231,80 @@ export default function ProfileDetail() {
         );
       } finally {
         setLoading(false);
+        setAccessChecked(true);
       }
     };
 
     fetchData();
   }, [params.id, isOwner]);
+
+  // 交換関係をチェックする関数
+  const checkExchangeRelation = async (user: any, targetProfileId: number) => {
+    if (!user) {
+      setHasAccess(false);
+      return;
+    }
+
+    try {
+      // ユーザーの全プロフィールを取得
+      const userProfilesResponse = await authenticatedFetch(
+        `/api/users/${user.id}/profiles`
+      );
+      
+      if (!userProfilesResponse.ok) {
+        setHasAccess(false);
+        return;
+      }
+
+      const userProfilesData = await userProfilesResponse.json();
+      const userProfiles = userProfilesData.profiles || [];
+
+      // 各プロフィールについて、対象プロフィールとの交換関係をチェック
+      for (const userProfile of userProfiles) {
+        // 自分のプロフィールから相手への接続をチェック
+        const connectionsResponse = await authenticatedFetch(
+          `/api/connections?profile_id=${userProfile.id}`
+        );
+        
+        if (connectionsResponse.ok) {
+          const connectionsData = await connectionsResponse.json();
+          const hasConnection = connectionsData.connections?.some(
+            (conn: { connect_user_profile_id: number }) => 
+              conn.connect_user_profile_id === targetProfileId
+          );
+          
+          if (hasConnection) {
+            setHasAccess(true);
+            return;
+          }
+        }
+
+        // 相手のプロフィールから自分への接続もチェック
+        const reverseConnectionsResponse = await authenticatedFetch(
+          `/api/connections?profile_id=${targetProfileId}`
+        );
+        
+        if (reverseConnectionsResponse.ok) {
+          const reverseConnectionsData = await reverseConnectionsResponse.json();
+          const hasReverseConnection = reverseConnectionsData.connections?.some(
+            (conn: { connect_user_profile_id: number }) => 
+              conn.connect_user_profile_id === userProfile.id
+          );
+          
+          if (hasReverseConnection) {
+            setHasAccess(true);
+            return;
+          }
+        }
+      }
+
+      // どのプロフィールでも交換関係が見つからない場合
+      setHasAccess(false);
+    } catch (err) {
+      console.error("交換関係チェックエラー:", err);
+      setHasAccess(false);
+    }
+  };
 
   // フレンド追加・編集フォームの表示・非表示切り替え
   const toggleFriendForm = () => {
@@ -348,7 +428,7 @@ export default function ProfileDetail() {
 
   // 関数を削除
 
-  if (loading) {
+  if (loading || !accessChecked) {
     return (
       <div className={styles.container}>
         <div className={styles.overlay}>
@@ -364,6 +444,24 @@ export default function ProfileDetail() {
         <div className={styles.overlay}>
           <p className={styles.message}>
             {error || "プロフィールが見つかりませんでした。"}
+          </p>
+          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+            戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // アクセス権限がない場合の表示
+  if (!hasAccess) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.overlay}>
+          <p className={styles.message}>
+            このプロフィールを表示する権限がありません。
+            <br />
+            プロフィールの作成者または交換済みの方のみ閲覧できます。
           </p>
           <button className={styles.backButton} onClick={() => router.push('/mypage')}>
             戻る
