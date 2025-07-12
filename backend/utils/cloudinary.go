@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -48,6 +49,9 @@ func (c *CloudinaryClient) UploadImage(ctx context.Context, imageData []byte, fi
 		return "", fmt.Errorf("画像サイズが大きすぎます: %d bytes", len(imageData))
 	}
 
+	// バイト配列をReaderに変換
+	reader := bytes.NewReader(imageData)
+
 	// アップロードパラメータの設定（シンプルにする）
 	uploadParams := uploader.UploadParams{
 		PublicID:     filename,
@@ -58,8 +62,8 @@ func (c *CloudinaryClient) UploadImage(ctx context.Context, imageData []byte, fi
 
 	fmt.Printf("Upload params: PublicID=%s, Folder=%s\n", uploadParams.PublicID, uploadParams.Folder)
 
-	// 画像をアップロード
-	result, err := c.client.Upload.Upload(ctx, imageData, uploadParams)
+	// 画像をアップロード（ReaderをFile parameterとして使用）
+	result, err := c.client.Upload.Upload(ctx, reader, uploadParams)
 	if err != nil {
 		fmt.Printf("Cloudinary upload failed: %v\n", err)
 		return "", fmt.Errorf("画像のアップロードに失敗しました: %v", err)
