@@ -26,6 +26,7 @@ type App struct {
 
 // NewApp は新しいAppインスタンスを作成します
 func NewApp(db *sql.DB) (*App, error) {
+	fmt.Println("Initializing Cloudinary client...")
 	cloudinaryClient, err := utils.NewCloudinaryClient()
 	if err != nil {
 		// Cloudinaryが設定されていない場合はログを出力してnilを設定
@@ -33,6 +34,7 @@ func NewApp(db *sql.DB) (*App, error) {
 		return &App{DB: db, CloudinaryClient: nil}, nil
 	}
 
+	fmt.Println("Cloudinary client initialized successfully")
 	return &App{DB: db, CloudinaryClient: cloudinaryClient}, nil
 }
 
@@ -74,21 +76,39 @@ func (app *App) CreateProfile(c *gin.Context) {
 
 	// アイコン画像の処理（存在する場合）
 	if req.IconBase64 != "" {
+		fmt.Printf("Processing icon image - Base64 length: %d\n", len(req.IconBase64))
+		
+		// Base64データの前処理（data:image/png;base64, などのプレフィックスを削除）
+		base64Data := req.IconBase64
+		if strings.Contains(base64Data, ",") {
+			parts := strings.Split(base64Data, ",")
+			if len(parts) > 1 {
+				base64Data = parts[1]
+				fmt.Printf("Removed base64 prefix, new length: %d\n", len(base64Data))
+			}
+		}
+		
 		// Base64をデコード
-		iconData, err := base64.StdEncoding.DecodeString(req.IconBase64)
+		iconData, err := base64.StdEncoding.DecodeString(base64Data)
 		if err != nil {
+			fmt.Printf("Base64 decode error: %v\n", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "画像データが不正です"})
 			return
 		}
+		
+		fmt.Printf("Base64 decoded successfully - image size: %d bytes\n", len(iconData))
 
 		// Cloudinaryが設定されている場合はCloudinaryを使用
 		if app.CloudinaryClient != nil {
 			filename := uuid.New().String()
+			fmt.Printf("Cloudinary upload attempt - filename: %s, data size: %d bytes\n", filename, len(iconData))
 			iconURL, err = app.CloudinaryClient.UploadImage(context.Background(), iconData, filename)
 			if err != nil {
+				fmt.Printf("Cloudinary upload error: %v\n", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "画像のアップロードに失敗しました"})
 				return
 			}
+			fmt.Printf("Cloudinary upload success - URL: %s\n", iconURL)
 		} else {
 			// ローカルファイル保存（開発環境用）
 			uploadDir := "./uploads"
