@@ -112,8 +112,14 @@ export default function ProfileDetail() {
         const profileData = await profileResponse.json();
 
         // アイコンURLが相対パスの場合、バックエンドの完全URLに変換
-        if (profileData.icon_url && profileData.icon_url.startsWith("/api/")) {
-          profileData.icon_url = `${getApiBaseUrl()}${profileData.icon_url}`;
+        if (profileData.icon_url) {
+          if (profileData.icon_url.startsWith("/api/")) {
+            profileData.icon_url = `${getApiBaseUrl()}${profileData.icon_url}`;
+          } else if (!profileData.icon_url.startsWith("http")) {
+            // URLがhttpで始まらない場合もAPIベースURLを追加
+            profileData.icon_url = `${getApiBaseUrl()}/api/profiles/${profileData.id}/icon`;
+          }
+          console.log("アイコンURL:", profileData.icon_url);
         }
 
         setProfile(profileData);
@@ -503,20 +509,11 @@ export default function ProfileDetail() {
         <div className={styles.profileHeader}>
           {profile.icon_url && (
             <div className={styles.iconContainer}>
-              {/*<img
+              {/* Next/Imageコンポーネントを使う代わりに標準のimgタグを使用 */}
+              <img
                 src={profile.icon_url}
                 alt={`${profile.display_name}のアイコン`}
                 className={styles.profileIcon}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              /> */}
-              <Image
-                src={profile.icon_url}
-                alt={`${profile.display_name}のアイコン`}
-                className={styles.profileIcon}
-                width={80}
-                height={80}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
@@ -605,12 +602,10 @@ export default function ProfileDetail() {
                             e.currentTarget.style.display = "none";
                           }} */}
                       {link.image_url ? (
-                        <Image
+                        <img
                           src={link.image_url}
                           alt={`${link.title}のアイコン`}
                           className={styles.linkIcon}
-                          width={40}
-                          height={40}
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
