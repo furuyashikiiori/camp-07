@@ -654,6 +654,16 @@ export default function ProfileDetail() {
         ⬅︎ HOME
       </Link>
 
+      {/* 編集ボタンをoverlayの外に移動 */}
+      {isOwner && (
+        <button
+          className={styles.editButton}
+          onClick={() => router.push(`/profile/${params.id}/edit`)}
+        >
+          ✎ プロフィールを編集
+        </button>
+      )}
+
       <div className={styles.overlay}>
         <div className={styles.profileHeader}>
           {profile.icon_url && (
@@ -898,15 +908,6 @@ export default function ProfileDetail() {
               </form>
             )}
           </div>
-        )}
-
-        {isOwner && (
-          <button
-            className={styles.editButton}
-            onClick={() => router.push(`/profile/${params.id}/edit`)}
-          >
-            ✎ プロフィールを編集
-          </button>
         )}
 
         <button
