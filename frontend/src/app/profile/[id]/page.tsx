@@ -236,10 +236,10 @@ export default function ProfileDetail() {
     };
 
     fetchData();
-  }, [params.id, isOwner]);
+  }, [params.id, router]);
 
   // 交換関係をチェックする関数
-  const checkExchangeRelation = async (user: any, targetProfileId: number) => {
+  const checkExchangeRelation = async (user: { id: number }, targetProfileId: number) => {
     if (!user) {
       setHasAccess(false);
       return;
