@@ -39,6 +39,17 @@ export const logout = () => {
   clearToken();
 };
 
+// 環境変数からAPI基底URLを取得
+const getApiBaseUrl = (): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!baseUrl) {
+    console.warn('NEXT_PUBLIC_API_BASE_URL is not set, falling back to localhost');
+    return 'http://localhost:8080';
+  }
+  // 末尾のスラッシュを削除
+  return baseUrl.replace(/\/$/, '');
+};
+
 // 認証されたAPIリクエストを行うためのヘルパー関数
 export const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const token = getToken();
@@ -56,8 +67,10 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
   
   // 相対パスの場合、バックエンドのベースURLを追加
   const apiUrl = url.startsWith('/api') 
-    ? `http://localhost:8080${url}` 
+    ? `${getApiBaseUrl()}${url}` 
     : url;
+    
+  console.log('Final API URL:', apiUrl);
     
   return fetch(apiUrl, {
     ...options,
