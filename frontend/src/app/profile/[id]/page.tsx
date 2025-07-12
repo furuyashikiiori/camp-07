@@ -112,8 +112,14 @@ export default function ProfileDetail() {
         const profileData = await profileResponse.json();
 
         // アイコンURLが相対パスの場合、バックエンドの完全URLに変換
-        if (profileData.icon_url && profileData.icon_url.startsWith("/api/")) {
-          profileData.icon_url = `${getApiBaseUrl()}${profileData.icon_url}`;
+        if (profileData.icon_url) {
+          if (profileData.icon_url.startsWith("/api/")) {
+            profileData.icon_url = `${getApiBaseUrl()}${profileData.icon_url}`;
+          } else if (!profileData.icon_url.startsWith("http")) {
+            // URLがhttpで始まらない場合もAPIベースURLを追加
+            profileData.icon_url = `${getApiBaseUrl()}/api/profiles/${profileData.id}/icon`;
+          }
+          console.log("アイコンURL:", profileData.icon_url);
         }
 
         setProfile(profileData);
@@ -445,7 +451,23 @@ export default function ProfileDetail() {
           <p className={styles.message}>
             {error || "プロフィールが見つかりませんでした。"}
           </p>
-          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+          <button 
+            className={styles.backButton} 
+            onClick={() => {
+              // セッションストレージから参照元を取得
+              const referrer = sessionStorage.getItem('referrer');
+              
+              // 参照元に基づいて戻る先を決定
+              if (referrer === 'listpage') {
+                router.push('/listpage');
+              } else if (referrer === 'mypage') {
+                router.push('/mypage');
+              } else {
+                // 参照元情報がない場合はブラウザの戻る機能を使用
+                router.back();
+              }
+            }}
+          >
             戻る
           </button>
         </div>
@@ -463,7 +485,23 @@ export default function ProfileDetail() {
             <br />
             プロフィールの作成者または交換済みの方のみ閲覧できます。
           </p>
-          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+          <button 
+            className={styles.backButton} 
+            onClick={() => {
+              // セッションストレージから参照元を取得
+              const referrer = sessionStorage.getItem('referrer');
+              
+              // 参照元に基づいて戻る先を決定
+              if (referrer === 'listpage') {
+                router.push('/listpage');
+              } else if (referrer === 'mypage') {
+                router.push('/mypage');
+              } else {
+                // 参照元不明の場合はマイページに戻る
+                router.push('/mypage');
+              }
+            }}
+          >
             戻る
           </button>
         </div>
@@ -489,20 +527,11 @@ export default function ProfileDetail() {
         <div className={styles.profileHeader}>
           {profile.icon_url && (
             <div className={styles.iconContainer}>
-              {/*<img
+              {/* Next/Imageコンポーネントを使う代わりに標準のimgタグを使用 */}
+              <img
                 src={profile.icon_url}
                 alt={`${profile.display_name}のアイコン`}
                 className={styles.profileIcon}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              /> */}
-              <Image
-                src={profile.icon_url}
-                alt={`${profile.display_name}のアイコン`}
-                className={styles.profileIcon}
-                width={80}
-                height={80}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
@@ -591,12 +620,10 @@ export default function ProfileDetail() {
                             e.currentTarget.style.display = "none";
                           }} */}
                       {link.image_url ? (
-                        <Image
+                        <img
                           src={link.image_url}
                           alt={`${link.title}のアイコン`}
                           className={styles.linkIcon}
-                          width={40}
-                          height={40}
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
                           }}
@@ -722,7 +749,27 @@ export default function ProfileDetail() {
           </button>
         )}
 
-        <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+        <button 
+          className={styles.backButton} 
+          onClick={() => {
+            // セッションストレージから参照元を取得
+            const referrer = sessionStorage.getItem('referrer');
+            
+            // 参照元に基づいて戻る先を決定
+            if (referrer === 'listpage') {
+              router.push('/listpage');
+            } else if (referrer === 'mypage') {
+              router.push('/mypage');
+            } else {
+              // 参照元情報がない場合、ユーザー所有のプロフィールかどうかで判断
+              if (isOwner) {
+                router.push('/mypage');
+              } else {
+                router.push('/listpage');
+              }
+            }
+          }}
+        >
           戻る
         </button>
       </div>
