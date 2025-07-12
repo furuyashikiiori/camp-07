@@ -102,7 +102,7 @@ export default function ListPage() {
     return (
       <div className={styles.container}>
         <Link href="/" className={styles.backLink}>
-          &lt; Back StartPage
+          ⬅︎ HOME
         </Link>
         <div className={styles.overlay}>
           <h1 className={styles.title}>Exchange List</h1>
@@ -116,7 +116,7 @@ export default function ListPage() {
     return (
       <div className={styles.container}>
         <Link href="/" className={styles.backLink}>
-          &lt; Back StartPage
+          ⬅︎ HOME
         </Link>
         <div className={styles.overlay}>
           <h1 className={styles.title}>Exchange List</h1>
@@ -129,7 +129,7 @@ export default function ListPage() {
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.backLink}>
-        &lt; Back StartPage
+        ⬅︎ HOME
       </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>Exchange List</h1>

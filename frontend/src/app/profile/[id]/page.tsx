@@ -543,7 +543,7 @@ export default function ProfileDetail() {
   return (
     <div className={styles.container}>
       <Link href='/' className={styles.backLink}>
-        &lt; Back StartPage
+        ⬅︎ HOME
       </Link>
 
       <div className={styles.overlay}>
