@@ -205,6 +205,7 @@ export default function ListPage() {
                           key={p.id}
                           href={`/profile/${p.id}`}
                           className={styles.nameLink}
+                          onClick={() => sessionStorage.setItem('referrer', 'listpage')}
                         >
                           <div className={styles.contactInfo}>
                             <span className={styles.userName}>{p.name}</span>
@@ -253,6 +254,7 @@ export default function ListPage() {
                   key={contact.id}
                   href={`/profile/${contact.id}`}
                   className={styles.followingItem}
+                  onClick={() => sessionStorage.setItem('referrer', 'listpage')}
                 >
                   <div>
                     <div className={styles.followingName}>{contact.name}</div>
