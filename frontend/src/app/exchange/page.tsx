@@ -76,7 +76,7 @@ function ExchangePageContent() {
           if (scannedProfileData.id) {
             try {
               const connectionsResponse = await authenticatedFetch(
-                `http://localhost:8080/api/connections?profile_id=${firstProfileId}`
+                `/api/connections?profile_id=${firstProfileId}`
               );
               
               if (connectionsResponse.ok) {
@@ -146,7 +146,7 @@ function ExchangePageContent() {
         }
       } else {
         // 新規作成の場合は両方向のコネクションを作成
-        const response1 = await authenticatedFetch('http://localhost:8080/api/connections', {
+        const response1 = await authenticatedFetch('/api/connections', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ function ExchangePageContent() {
           }),
         });
 
-        const response2 = await authenticatedFetch('http://localhost:8080/api/connections', {
+        const response2 = await authenticatedFetch('/api/connections', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ function ExchangePageContent() {
     
     try {
       const connectionsResponse = await authenticatedFetch(
-        `http://localhost:8080/api/connections?profile_id=${profileId}`
+        `/api/connections?profile_id=${profileId}`
       );
       
       if (connectionsResponse.ok) {
