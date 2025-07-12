@@ -109,6 +109,8 @@ func (app *App) CreateProfile(c *gin.Context) {
 				return
 			}
 			fmt.Printf("Cloudinary upload success - URL: %s\n", iconURL)
+			// CloudinaryのURLをicon_pathに保存
+			iconPath = iconURL
 		} else {
 			// ローカルファイル保存（開発環境用）
 			uploadDir := "./uploads"
@@ -284,37 +286,59 @@ func (app *App) UpdateProfile(c *gin.Context) {
 
 	// アイコン画像の処理（存在する場合）
 	if req.IconBase64 != "" {
+		// Base64データの前処理（data:image/png;base64, などのプレフィックスを削除）
+		base64Data := req.IconBase64
+		if strings.Contains(base64Data, ",") {
+			parts := strings.Split(base64Data, ",")
+			if len(parts) > 1 {
+				base64Data = parts[1]
+			}
+		}
+		
 		// Base64をデコード
-		iconData, err := base64.StdEncoding.DecodeString(req.IconBase64)
+		iconData, err := base64.StdEncoding.DecodeString(base64Data)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "画像データが不正です"})
 			return
 		}
 
-		// ディレクトリ確認
-		uploadDir := "./uploads"
-		if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
-			if err := os.MkdirAll(uploadDir, 0755); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
+		// Cloudinaryが設定されている場合はCloudinaryを使用
+		if app.CloudinaryClient != nil {
+			filename := uuid.New().String()
+			iconURL, err := app.CloudinaryClient.UploadImage(context.Background(), iconData, filename)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "画像のアップロードに失敗しました"})
 				return
 			}
-		}
-
-		// 古いアイコンがあれば削除
-		if currentIconPath.Valid && currentIconPath.String != "" {
-			if err := os.Remove(currentIconPath.String); err != nil && !os.IsNotExist(err) {
-				fmt.Printf("Failed to delete old icon: %v\n", err)
+			// CloudinaryのURLをnewIconPathに設定
+			newIconPath = iconURL
+		} else {
+			// ローカルファイル保存（開発環境用）
+			uploadDir := "./uploads"
+			if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+				if err := os.MkdirAll(uploadDir, 0755); err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "アップロードディレクトリの作成に失敗しました"})
+					return
+				}
 			}
-		}
 
-		// ユニークなファイル名を生成
-		filename := uuid.New().String() + ".png"
-		newIconPath = filepath.Join(uploadDir, filename)
+			// 古いアイコンがあれば削除（ローカルファイルの場合のみ）
+			if currentIconPath.Valid && currentIconPath.String != "" && 
+			   !strings.HasPrefix(currentIconPath.String, "https://res.cloudinary.com/") {
+				if err := os.Remove(currentIconPath.String); err != nil && !os.IsNotExist(err) {
+					fmt.Printf("Failed to delete old icon: %v\n", err)
+				}
+			}
 
-		// ファイルに保存
-		if err := os.WriteFile(newIconPath, iconData, 0644); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
-			return
+			// ユニークなファイル名を生成
+			filename := uuid.New().String() + ".png"
+			newIconPath = filepath.Join(uploadDir, filename)
+
+			// ファイルに保存
+			if err := os.WriteFile(newIconPath, iconData, 0644); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "画像の保存に失敗しました"})
+				return
+			}
 		}
 
 		paramCount++
@@ -367,8 +391,22 @@ func (app *App) UpdateProfile(c *gin.Context) {
 	}
 
 	// アイコンURLを設定
-	if newIconPath != "" || (currentIconPath.Valid && currentIconPath.String != "") {
-		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+	if newIconPath != "" {
+		// CloudinaryのURLかどうかを判定
+		if strings.HasPrefix(newIconPath, "https://res.cloudinary.com/") {
+			// CloudinaryのURLの場合は直接使用
+			profile.IconURL = newIconPath
+		} else {
+			// ローカルファイルの場合は従来の方法
+			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+		}
+	} else if currentIconPath.Valid && currentIconPath.String != "" {
+		// 既存のアイコンがある場合
+		if strings.HasPrefix(currentIconPath.String, "https://res.cloudinary.com/") {
+			profile.IconURL = currentIconPath.String
+		} else {
+			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+		}
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -438,7 +476,14 @@ func (app *App) GetProfile(c *gin.Context) {
 
 	// アイコンURLの設定
 	if iconPath.Valid && iconPath.String != "" {
-		profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+		// CloudinaryのURLかどうかを判定
+		if strings.HasPrefix(iconPath.String, "https://res.cloudinary.com/") {
+			// CloudinaryのURLの場合は直接使用
+			profile.IconURL = iconPath.String
+		} else {
+			// ローカルファイルの場合は従来の方法
+			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+		}
 	}
 
 	c.JSON(http.StatusOK, profile)
@@ -571,7 +616,14 @@ func (app *App) GetProfilesByUserID(c *gin.Context) {
 		// アイコンURLの設定
 		if iconPath.Valid && iconPath.String != "" {
 			profile.IconPath = iconPath.String
-			profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+			// CloudinaryのURLかどうかを判定
+			if strings.HasPrefix(iconPath.String, "https://res.cloudinary.com/") {
+				// CloudinaryのURLの場合は直接使用
+				profile.IconURL = iconPath.String
+			} else {
+				// ローカルファイルの場合は従来の方法
+				profile.IconURL = fmt.Sprintf("http://localhost:8080/api/profiles/%d/icon", profile.ID)
+			}
 		}
 
 		profiles = append(profiles, profile)
@@ -706,9 +758,16 @@ func (app *App) DeleteProfile(c *gin.Context) {
 
 	// アイコン画像を削除
 	if iconPath.Valid && iconPath.String != "" {
-		if err := os.Remove(iconPath.String); err != nil && !os.IsNotExist(err) {
-			// ログのみ、エラー応答は返さない
-			fmt.Printf("Failed to delete profile icon: %v\n", err)
+		// CloudinaryのURLかどうかを判定
+		if strings.HasPrefix(iconPath.String, "https://res.cloudinary.com/") {
+			// CloudinaryのURLの場合は（現在は削除しない）
+			// TODO: 必要に応じてCloudinaryからも削除
+			fmt.Printf("Cloudinary image not deleted: %s\n", iconPath.String)
+		} else {
+			// ローカルファイルの場合は削除
+			if err := os.Remove(iconPath.String); err != nil && !os.IsNotExist(err) {
+				fmt.Printf("Failed to delete profile icon: %v\n", err)
+			}
 		}
 	}
 
