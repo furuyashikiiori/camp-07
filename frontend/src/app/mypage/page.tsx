@@ -288,7 +288,10 @@ export default function ProfilePage() {
                 <div className={styles.profileCardContent}>
                   <div
                     className={styles.profileCardInfo}
-                    onClick={() => router.push(`/profile/${profile.id}`)}
+                    onClick={() => {
+                      sessionStorage.setItem('referrer', 'mypage');
+                      router.push(`/profile/${profile.id}`);
+                    }}
                   >
                     <h2 className={styles.cardTitle}>{profile.title}</h2>
                     <p className={styles.cardDescription}>

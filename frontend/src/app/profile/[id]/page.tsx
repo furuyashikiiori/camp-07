@@ -454,14 +454,16 @@ export default function ProfileDetail() {
           <button 
             className={styles.backButton} 
             onClick={() => {
-              // リファラー(前のページ)のURLをチェック
-              const referrer = document.referrer;
+              // セッションストレージから参照元を取得
+              const referrer = sessionStorage.getItem('referrer');
               
-              // リファラーがlistpageだった場合はlistpageに戻る
-              if (referrer && referrer.includes('/listpage')) {
+              // 参照元に基づいて戻る先を決定
+              if (referrer === 'listpage') {
                 router.push('/listpage');
+              } else if (referrer === 'mypage') {
+                router.push('/mypage');
               } else {
-                // それ以外の場合はブラウザーの戻る機能を使用
+                // 参照元情報がない場合はブラウザの戻る機能を使用
                 router.back();
               }
             }}
@@ -483,7 +485,23 @@ export default function ProfileDetail() {
             <br />
             プロフィールの作成者または交換済みの方のみ閲覧できます。
           </p>
-          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+          <button 
+            className={styles.backButton} 
+            onClick={() => {
+              // セッションストレージから参照元を取得
+              const referrer = sessionStorage.getItem('referrer');
+              
+              // 参照元に基づいて戻る先を決定
+              if (referrer === 'listpage') {
+                router.push('/listpage');
+              } else if (referrer === 'mypage') {
+                router.push('/mypage');
+              } else {
+                // 参照元不明の場合はマイページに戻る
+                router.push('/mypage');
+              }
+            }}
+          >
             戻る
           </button>
         </div>
@@ -740,9 +758,15 @@ export default function ProfileDetail() {
             // 参照元に基づいて戻る先を決定
             if (referrer === 'listpage') {
               router.push('/listpage');
+            } else if (referrer === 'mypage') {
+              router.push('/mypage');
             } else {
-              // リストページからの可能性が高いため、優先的にリストページに戻す
-              router.push('/listpage');
+              // 参照元情報がない場合、ユーザー所有のプロフィールかどうかで判断
+              if (isOwner) {
+                router.push('/mypage');
+              } else {
+                router.push('/listpage');
+              }
             }
           }}
         >
