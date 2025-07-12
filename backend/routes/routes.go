@@ -13,8 +13,14 @@ func SetupRoutes(r *gin.Engine) {
 	// CORSミドルウェア
 	r.Use(middleware.CORSMiddleware())
 
-	// ハンドラの初期化（DBコネクションセット）
-	app := &handlers.App{DB: database.DB}
+	// ハンドラの初期化（DBコネクションとCloudinaryクライアントセット）
+	app, err := handlers.NewApp(database.DB)
+	if err != nil {
+		panic("Failed to initialize app: " + err.Error())
+	}
+
+	// 静的ファイル配信（開発環境用）
+	r.Static("/api/uploads", "./uploads")
 
 	// APIルートグループ
 	api := r.Group("/api")
