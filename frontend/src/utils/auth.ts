@@ -4,6 +4,8 @@ export type User = {
   email: string;
 };
 
+import { getApiBaseUrl } from './config';
+
 const USER_KEY = 'user';
 const TOKEN_KEY = 'token';
 
@@ -37,17 +39,6 @@ export const clearToken = () => {
 export const logout = () => {
   clearUser();
   clearToken();
-};
-
-// 環境変数からAPI基底URLを取得
-const getApiBaseUrl = (): string => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!baseUrl) {
-    console.warn('NEXT_PUBLIC_API_BASE_URL is not set, falling back to localhost');
-    return 'http://localhost:8080';
-  }
-  // 末尾のスラッシュを削除
-  return baseUrl.replace(/\/$/, '');
 };
 
 // 認証されたAPIリクエストを行うためのヘルパー関数
