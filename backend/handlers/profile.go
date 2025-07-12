@@ -584,14 +584,79 @@ func (app *App) DeleteProfile(c *gin.Context) {
 		return
 	}
 
-	// DBから削除
-	_, err = app.DB.ExecContext(
-		context.Background(),
+	// トランザクションを開始
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := app.DB.BeginTx(ctx, nil)
+	if err != nil {
+		fmt.Printf("トランザクション開始エラー: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "トランザクションの開始に失敗しました"})
+		return
+	}
+	defer tx.Rollback() // エラー時に自動ロールバック
+
+	// 関連データを先に削除（外部キー制約のため）
+	// option_profilesを削除
+	_, err = tx.ExecContext(
+		ctx,
+		"DELETE FROM option_profiles WHERE profile_id = $1",
+		profileID,
+	)
+	if err != nil {
+		fmt.Printf("option_profiles削除エラー: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "関連データの削除に失敗しました（option_profiles）"})
+		return
+	}
+
+	// connectionsを削除
+	_, err = tx.ExecContext(
+		ctx,
+		"DELETE FROM connections WHERE profile_id = $1 OR connect_user_profile_id = $1",
+		profileID,
+	)
+	if err != nil {
+		fmt.Printf("connections削除エラー: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "関連データの削除に失敗しました（connections）"})
+		return
+	}
+
+	// リンクを削除
+	_, err = tx.ExecContext(
+		ctx,
+		"DELETE FROM link WHERE profile_id = $1",
+		profileID,
+	)
+	if err != nil {
+		fmt.Printf("link削除エラー: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "関連データの削除に失敗しました（link）"})
+		return
+	}
+
+	// プロファイル自体を削除
+	result, err := tx.ExecContext(
+		ctx,
 		"DELETE FROM profiles WHERE id = $1",
 		profileID,
 	)
 	if err != nil {
+		fmt.Printf("profiles削除エラー: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "プロフィールの削除に失敗しました"})
+		return
+	}
+
+	// 影響を受けた行数を確認
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Printf("RowsAffected取得エラー: %v\n", err)
+	} else if rowsAffected == 0 {
+		fmt.Printf("削除されたプロフィールなし: ID=%d\n", profileID)
+	}
+
+	// トランザクションをコミット
+	if err := tx.Commit(); err != nil {
+		fmt.Printf("トランザクションコミットエラー: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "変更の確定に失敗しました"})
 		return
 	}
 
@@ -603,5 +668,9 @@ func (app *App) DeleteProfile(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "プロフィールを削除しました"})
+	// JSONレスポンスを返す
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "プロフィールを削除しました",
+		"profile_id": profileID,
+	})
 }

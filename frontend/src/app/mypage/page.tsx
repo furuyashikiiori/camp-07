@@ -28,6 +28,19 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    profileId: number | null;
+    profileTitle: string;
+    isDeleting: boolean; // 削除処理中かどうか
+    hasConnections: boolean; // コネクション（フレンド）が存在するか
+  }>({
+    isOpen: false,
+    profileId: null,
+    profileTitle: '',
+    isDeleting: false,
+    hasConnections: false,
+  });
 
   useEffect(() => {
     // ログイン中のユーザー情報を取得
@@ -124,6 +137,98 @@ export default function ProfilePage() {
     fetchProfiles();
   }, [router]);
 
+  // プロフィール削除処理
+  const handleDeleteProfile = async (profileId: number) => {
+    try {
+      setDeleteConfirmation(prev => ({...prev, isDeleting: true}));
+      
+      // 削除リクエストの実行
+      const response = await authenticatedFetch(`/api/profiles/${profileId}`, {
+        method: 'DELETE',
+      });
+
+      // レスポンスのステータスコードをチェック
+      if (!response.ok) {
+        // エラーメッセージの詳細を追加
+        throw new Error(`削除に失敗しました (${response.status}). サーバーエラーが発生しました。`);
+      }
+
+      // JSONレスポンスを正しく解析する（text()は一度しか呼べないため、json()を直接使う）
+      try {
+        // レスポンスのJSONをパース
+        await response.json();
+      } catch (jsonError) {
+        // JSONパースエラーは無視（正常に削除できていれば問題ない）
+        console.log("レスポンスのJSONパースに失敗しましたが、削除は成功しました");
+      }
+
+      // 成功したら、プロフィール一覧から削除したプロフィールを除外
+      setProfiles(profiles.filter(p => p.id !== profileId));
+      
+      // 確認ダイアログを閉じる
+      setDeleteConfirmation({
+        isOpen: false,
+        profileId: null,
+        profileTitle: '',
+        isDeleting: false,
+        hasConnections: false,
+      });
+
+      // ユーザーがプロフィールをすべて削除した場合、メッセージを表示
+      if (profiles.length === 1) {
+        setError('プロフィールを作成してください。QRコードの交換にはプロフィールが必要です。');
+      } else {
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      setError(err instanceof Error ? err.message : '削除中にエラーが発生しました');
+      
+      // 確認ダイアログを閉じる（エラー時も）
+      setDeleteConfirmation(prev => ({
+        ...prev, 
+        isDeleting: false
+      }));
+    }
+  };
+
+  // 削除確認ダイアログを表示
+  const showDeleteConfirmation = async (e: React.MouseEvent, profile: Profile) => {
+    e.stopPropagation(); // クリックイベントの伝播を停止
+    
+    // 削除前にコネクション（フレンド情報）の有無を確認
+    let hasConnections = false;
+    try {
+      // プロフィールに関連するコネクションを取得
+      const response = await authenticatedFetch(`/api/connections?profile_id=${profile.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        hasConnections = data.connections && data.connections.length > 0;
+      }
+    } catch (err) {
+      console.error("コネクション情報の取得中にエラーが発生しました:", err);
+    }
+    
+    setDeleteConfirmation({
+      isOpen: true,
+      profileId: profile.id,
+      profileTitle: profile.title,
+      isDeleting: false,
+      hasConnections,
+    });
+  };
+
+  // 削除確認ダイアログをキャンセル
+  const cancelDelete = () => {
+    setDeleteConfirmation({
+      isOpen: false,
+      profileId: null,
+      profileTitle: '',
+      isDeleting: false,
+      hasConnections: false,
+    });
+  };
+
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.backLink}>
@@ -147,21 +252,86 @@ export default function ProfilePage() {
           ) : error ? (
             <p className={styles.message}>{error}</p>
           ) : profiles.length === 0 ? (
-            <p className={styles.message}>プロフィールがまだありません。</p>
+            <div className={styles.emptyState}>
+              <p className={styles.message}>プロフィールがまだありません。</p>
+              <p className={styles.subMessage}>
+                QRコードを作成・交換するには、プロフィールを作成する必要があります。<br />
+                「NewProfile ＋」ボタンをクリックして、新しいプロフィールを作成しましょう！
+              </p>
+              <button
+                className={`${styles.newProfileButton} ${styles.emptyStateButton}`}
+                onClick={() => router.push('/profile/new')}
+              >
+                プロフィールを作成する ＋
+              </button>
+            </div>
           ) : (
             profiles.map((profile) => (
               <div 
                 key={profile.id} 
                 className={styles.profileCard}
-                onClick={() => router.push(`/profile/${profile.id}`)}
               >
-                <h2 className={styles.cardTitle}>{profile.title}</h2>
-                <p className={styles.cardDescription}>{profile.description || 'プロフィールの説明がありません'}</p>
+                <div className={styles.profileCardContent}>
+                  <div 
+                    className={styles.profileCardInfo}
+                    onClick={() => router.push(`/profile/${profile.id}`)}
+                  >
+                    <h2 className={styles.cardTitle}>{profile.title}</h2>
+                    <p className={styles.cardDescription}>{profile.description || 'プロフィールの説明がありません'}</p>
+                  </div>
+                  <button 
+                    className={styles.deleteButton}
+                    onClick={(e) => showDeleteConfirmation(e, profile)}
+                  >
+                    削除
+                  </button>
+                </div>
               </div>
             ))
           )}
         </div>
       </div>
+      {/* 削除確認ダイアログ */}
+      {deleteConfirmation.isOpen && (
+        <div className={styles.confirmDialog}>
+          <div className={styles.confirmDialogContent}>
+            <h3 className={styles.confirmTitle}>プロフィールの削除</h3>
+            <p className={styles.confirmMessage}>
+              「{deleteConfirmation.profileTitle}」を削除しますか？<br />
+              この操作は取り消せません。
+            </p>
+            
+            {deleteConfirmation.hasConnections && (
+              <div className={styles.warningMessage}>
+                <p>⚠️ このプロフィールはフレンド情報を持っています。削除すると、関連するすべてのフレンド情報も削除されます。</p>
+              </div>
+            )}
+            
+            {profiles.length <= 1 && (
+              <div className={styles.warningMessage}>
+                <p>⚠️ これは最後のプロフィールです。削除すると、新しいプロフィールを作成するまでQRコードの交換ができなくなります。</p>
+              </div>
+            )}
+            
+            <div className={styles.confirmButtons}>
+              <button 
+                className={styles.cancelButton} 
+                onClick={cancelDelete}
+                disabled={deleteConfirmation.isDeleting}
+              >
+                キャンセル
+              </button>
+              <button 
+                className={styles.confirmDeleteButton}
+                onClick={() => deleteConfirmation.profileId && handleDeleteProfile(deleteConfirmation.profileId)}
+                disabled={deleteConfirmation.isDeleting}
+              >
+                {deleteConfirmation.isDeleting ? '削除中...' : '削除する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
