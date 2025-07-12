@@ -445,7 +445,21 @@ export default function ProfileDetail() {
           <p className={styles.message}>
             {error || "プロフィールが見つかりませんでした。"}
           </p>
-          <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+          <button 
+            className={styles.backButton} 
+            onClick={() => {
+              // リファラー(前のページ)のURLをチェック
+              const referrer = document.referrer;
+              
+              // リファラーがlistpageだった場合はlistpageに戻る
+              if (referrer && referrer.includes('/listpage')) {
+                router.push('/listpage');
+              } else {
+                // それ以外の場合はブラウザーの戻る機能を使用
+                router.back();
+              }
+            }}
+          >
             戻る
           </button>
         </div>
@@ -722,7 +736,21 @@ export default function ProfileDetail() {
           </button>
         )}
 
-        <button className={styles.backButton} onClick={() => router.push('/mypage')}>
+        <button 
+          className={styles.backButton} 
+          onClick={() => {
+            // セッションストレージから参照元を取得
+            const referrer = sessionStorage.getItem('referrer');
+            
+            // 参照元に基づいて戻る先を決定
+            if (referrer === 'listpage') {
+              router.push('/listpage');
+            } else {
+              // リストページからの可能性が高いため、優先的にリストページに戻す
+              router.push('/listpage');
+            }
+          }}
+        >
           戻る
         </button>
       </div>
