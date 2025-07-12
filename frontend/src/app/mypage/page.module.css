@@ -117,7 +117,7 @@
 }
 
 .deleteButton {
-  background-color: #ff6b6b;
+  background-color: #77a0ed;
   color: white;
   border: none;
   border-radius: 8px;
@@ -130,7 +130,7 @@
 }
 
 .deleteButton:hover {
-  background-color: #ff4757;
+  background-color: #007bff;
 }
 
 .confirmDialog {
@@ -251,4 +251,73 @@
 .emptyStateButton:hover {
   transform: translateY(-3px);
   background-color: #5a8ae0;
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 15px;
+  }
+  
+  .overlay {
+    padding: 60px 20px;
+    max-width: 95%;
+  }
+  
+  .title {
+    font-size: 2.2rem;
+  }
+  
+  .backLink {
+    top: 20px;
+    left: 20px;
+    font-size: 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px 10px;
+  }
+  
+  .overlay {
+    padding: 40px 15px;
+    max-width: 98%;
+    border-radius: 16px;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  
+  .backLink {
+    top: 15px;
+    left: 15px;
+    font-size: 1.2rem;
+  }
+  
+  .profileCard {
+    padding: 16px;
+  }
+  
+  .confirmDialogContent {
+    max-width: 95%;
+    padding: 20px 15px;
+  }
+}
+
+@media (max-width: 360px) {
+  .overlay {
+    padding: 30px 10px;
+    max-width: 99%;
+  }
+  
+  .title {
+    font-size: 1.8rem;
+  }
+  
+  .profileCard {
+    padding: 12px;
+  }
 }
