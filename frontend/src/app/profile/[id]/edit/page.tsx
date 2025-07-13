@@ -260,7 +260,6 @@ export default function ProfileEditPage() {
           setPresetTypes(data.link_types || []);
         }
       } catch (error) {
-        console.error('プリセットリンクタイプの取得エラー:', error);
       }
     };
     fetchPresetTypes();
@@ -294,17 +293,9 @@ export default function ProfileEditPage() {
         if (linksResponse.ok) {
           const linksData = await linksResponse.json();
           existingLinks = linksData.links || [];
-          console.log('編集画面: 取得したリンク総数:', existingLinks.length);
-          existingLinks.forEach((link, index) => {
-            console.log(`編集画面: リンク${index + 1} - ID:${link.id}, Title:${link.title}`);
-          });
         }
 
         // 全てのリンクを統一して扱う（プリセットリンクも含む）
-        console.log('編集画面: 全リンク:', existingLinks);
-        existingLinks.forEach((link, index) => {
-          console.log(`編集画面: リンク${index + 1} - ID:${link.id}, Title:'${link.title}'`);
-        });
 
         // フォームデータを設定（全てのリンクを統一して扱う）
         setFormData({
@@ -345,11 +336,6 @@ export default function ProfileEditPage() {
         // 元のリンク情報を保存
         setOriginalLinks(existingLinks);
         
-        console.log('編集画面: setFormDataで設定されたotherLinks:', existingLinks.map(link => ({
-          id: link.id,
-          title: link.title,
-          url: link.url
-        })));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'エラーが発生しました');
       } finally {
@@ -420,7 +406,6 @@ export default function ProfileEditPage() {
       isNew: true,
     };
 
-    console.log('プリセットリンク追加:', newLink);
     
     setFormData({
       ...formData,
@@ -439,7 +424,6 @@ export default function ProfileEditPage() {
       isNew: true,
     };
 
-    console.log('カスタムリンク追加:', newLink);
     
     setFormData({
       ...formData,
@@ -528,7 +512,6 @@ export default function ProfileEditPage() {
       await updateOptionalFields();
 
       // リンクの更新
-      console.log('全リンクデータ送信前:', formData.otherLinks);
       await updateLinks();
 
       alert('プロフィールを更新しました！');
@@ -547,7 +530,6 @@ export default function ProfileEditPage() {
           method: 'DELETE',
         });
       } catch (error) {
-        console.error('任意項目の削除エラー:', error);
       }
     }
 
@@ -566,7 +548,6 @@ export default function ProfileEditPage() {
             body: JSON.stringify(optionData),
           });
         } catch (error) {
-          console.error('任意項目の保存エラー:', error);
         }
       }
     }
@@ -581,7 +562,6 @@ export default function ProfileEditPage() {
           method: 'DELETE',
         });
       } catch (error) {
-        console.error('リンクの削除エラー:', error);
       }
     }
 
@@ -603,7 +583,6 @@ export default function ProfileEditPage() {
         }
       }
     } catch (error) {
-      console.error('プリセットアイコン情報の取得エラー:', error);
     }
 
     // 既存リンクの更新処理
@@ -641,14 +620,12 @@ export default function ProfileEditPage() {
             body: JSON.stringify(linkData),
           });
         } catch (error) {
-          console.error('リンクの更新エラー:', error);
         }
       }
     }
 
     // 新規リンクの追加処理
     const linksToAdd = formData.otherLinks.filter(link => link.isNew && !link.isDeleted);
-    console.log('追加対象のリンク:', linksToAdd);
     
     for (const link of linksToAdd) {
       if (link.url.trim()) {
@@ -671,14 +648,12 @@ export default function ProfileEditPage() {
             image_url: imageUrl,
           };
 
-          console.log('新規リンク作成データ:', linkData);
           
           const response = await authenticatedFetch('/api/links', {
             method: 'POST',
             body: JSON.stringify(linkData),
           });
 
-          console.log('新規リンク作成レスポンス:', response.status, response.ok);
           
           if (!response.ok) {
             const errorText = await response.text().catch(() => '');
@@ -688,16 +663,12 @@ export default function ProfileEditPage() {
             } catch {
               errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` };
             }
-            console.error('新規リンク作成エラー詳細:', errorData);
           } else {
             const resultData = await response.json().catch(() => ({}));
-            console.log('新規リンク作成成功:', resultData);
           }
         } catch (error) {
-          console.error('リンクの保存エラー:', error);
         }
       } else {
-        console.log('URLが空のため追加をスキップ:', link);
       }
     }
   };
@@ -850,8 +821,6 @@ export default function ProfileEditPage() {
             <h3>リンク</h3>
 
             {(() => {
-              console.log('編集画面: 表示時のformData.otherLinks:', formData.otherLinks);
-              console.log('編集画面: フィルタ後のリンク:', formData.otherLinks.filter(link => !link.isDeleted));
               return formData.otherLinks
                 .filter(link => !link.isDeleted)
                 .map((link) => {
