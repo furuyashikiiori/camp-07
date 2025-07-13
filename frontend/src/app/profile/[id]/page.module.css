@@ -395,6 +395,11 @@
     grid-template-columns: 1fr;
   }
 
+  .overlay {
+    padding: 20px;
+    top: 60px;
+  }
+
   .profileHeader {
     flex-direction: column;
     text-align: center;
@@ -438,4 +443,9 @@
     right: 15px;
     padding: 8px 14px;
     font-size: 0.8rem;
-}}
+  }
+  .overlay {
+    padding: 20px;
+    top: 80px;
+  }
+}
