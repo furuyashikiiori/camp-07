@@ -14,6 +14,29 @@ const nextConfig: NextConfig = {
   // trailingSlash: true,
   images: {
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8080',
+        pathname: '/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'qrsona-backend.onrender.com',
+        pathname: '/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'qrsona-backend-dev.onrender.com',
+        pathname: '/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+    ],
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || getApiUrl(),
