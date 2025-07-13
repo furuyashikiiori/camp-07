@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { authenticatedFetch, getUser } from "@/utils/auth";
@@ -278,7 +279,7 @@ export default function ProfileDetail() {
     };
 
     fetchData();
-  }, [params.id, router]);
+  }, [params.id, router, isOwner]);
 
   // 交換関係をチェックする関数
   const checkExchangeRelation = async (
@@ -669,10 +670,12 @@ export default function ProfileDetail() {
         <div className={styles.profileHeader}>
           {profile.icon_url && (
             <div className={styles.iconContainer}>
-              {/* Next/Imageコンポーネントを使う代わりに標準のimgタグを使用 */}
-              <img
+              {/* Next.js Image コンポーネントを使用 */}
+              <Image
                 src={profile.icon_url}
                 alt={`${profile.display_name}のアイコン`}
+                width={150}
+                height={150}
                 className={styles.profileIcon}
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
@@ -764,9 +767,11 @@ export default function ProfileDetail() {
                             e.currentTarget.style.display = "none";
                           }} */}
                       {link.image_url ? (
-                        <img
+                        <Image
                           src={link.image_url}
                           alt={`${link.title}のアイコン`}
+                          width={24}
+                          height={24}
                           className={styles.linkIcon}
                           onError={(e) => {
                             e.currentTarget.style.display = "none";
