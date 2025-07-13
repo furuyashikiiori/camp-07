@@ -791,7 +791,7 @@ export default function ProfileEditPage() {
             />
           </label>
 
-          <h3>任意の項目（最大3つ）</h3>
+          <h3>任意の項目</h3>
           {formData.optionalFields.map((field, index) => (
             <div key={index} className={styles.optionalField}>
               <input
