@@ -259,7 +259,8 @@ export default function ProfileEditPage() {
           const data = await response.json();
           setPresetTypes(data.link_types || []);
         }
-      } catch (error) {
+      } catch {
+        // エラーハンドリング
       }
     };
     fetchPresetTypes();
@@ -529,7 +530,8 @@ export default function ProfileEditPage() {
         await authenticatedFetch(`/api/option_profiles/${option.id}`, {
           method: 'DELETE',
         });
-      } catch (error) {
+      } catch {
+        // エラーハンドリング
       }
     }
 
@@ -547,7 +549,8 @@ export default function ProfileEditPage() {
             method: 'POST',
             body: JSON.stringify(optionData),
           });
-        } catch (error) {
+        } catch {
+          // エラーハンドリング
         }
       }
     }
@@ -561,19 +564,20 @@ export default function ProfileEditPage() {
         await authenticatedFetch(`/api/links/${link.id}`, {
           method: 'DELETE',
         });
-      } catch (error) {
+      } catch {
+        // エラーハンドリング
       }
     }
 
     // バックエンドからプリセットアイコン情報を取得
-    let presetIcons: Record<string, string> = {};
     try {
       const response = await authenticatedFetch('/api/links/types/common');
       if (response.ok) {
         const data = await response.json();
         const commonTypes = data.link_types || data || [];
         if (Array.isArray(commonTypes)) {
-          presetIcons = commonTypes.reduce(
+          // プリセットアイコン情報は後で使用される予定
+          commonTypes.reduce(
             (acc: Record<string, string>, type: { name: string; icon_url: string }) => {
               acc[type.name] = type.icon_url;
               return acc;
@@ -582,7 +586,8 @@ export default function ProfileEditPage() {
           );
         }
       }
-    } catch (error) {
+    } catch {
+      // エラーハンドリング
     }
 
     // 既存リンクの更新処理
@@ -619,7 +624,8 @@ export default function ProfileEditPage() {
             method: 'PUT',
             body: JSON.stringify(linkData),
           });
-        } catch (error) {
+        } catch {
+          // エラーハンドリング
         }
       }
     }
@@ -657,16 +663,16 @@ export default function ProfileEditPage() {
           
           if (!response.ok) {
             const errorText = await response.text().catch(() => '');
-            let errorData;
             try {
-              errorData = JSON.parse(errorText);
+              JSON.parse(errorText);
             } catch {
-              errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` };
+              // JSON解析失敗時の処理
             }
           } else {
-            const resultData = await response.json().catch(() => ({}));
+            await response.json().catch(() => ({}));
           }
-        } catch (error) {
+        } catch {
+          // エラーハンドリング
         }
       } else {
       }
