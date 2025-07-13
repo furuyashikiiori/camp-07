@@ -70,7 +70,7 @@ export default function ListPage() {
           profileTitle: conn.connected_profile_title,
           exchangeDate: conn.connected_at.split('T')[0], // 日付部分のみ抽出
           eventName: conn.event_name || '',
-          eventDate: conn.event_date || '',
+          eventDate: conn.event_date ? conn.event_date.split('T')[0] : '', // 日付部分のみ抽出
           memo: conn.memo || '',
         }));
         
@@ -223,7 +223,7 @@ export default function ListPage() {
                                 {p.eventDate && (
                                   <div className={styles.eventDetail}>
                                     <span className={styles.eventIcon}>📅</span>
-                                    <span>{p.eventDate}</span>
+                                    <span>{p.eventDate.split('T')[0]}</span>
                                   </div>
                                 )}
                                 {p.memo && (
