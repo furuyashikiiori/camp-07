@@ -138,7 +138,7 @@ func (app *App) GetOptionProfilesByProfileID(c *gin.Context) {
 
 	rows, err := app.DB.QueryContext(
 		context.Background(),
-		"SELECT id, title, content, profile_id FROM option_profiles WHERE profile_id = $1 ORDER BY id DESC", profileID)
+		"SELECT id, title, content, profile_id FROM option_profiles WHERE profile_id = $1 ORDER BY id ASC", profileID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "データベースエラー"})
 		return
