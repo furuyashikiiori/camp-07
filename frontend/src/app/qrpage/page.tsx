@@ -104,7 +104,7 @@ export default function QRPage() {
     <div className={styles.container}>
       <main className={styles.main}>
         <Link href="/" className={styles.backLink}>
-          &lt; Back StartPage
+            ⬅︎ HOME
         </Link>
 
         <h1 className={styles.title}>QRコードページ</h1>

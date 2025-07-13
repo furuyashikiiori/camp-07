@@ -493,7 +493,7 @@ export default function NewProfilePage() {
   return (
     <div className={styles.container}>
       <Link href='/mypage' className={styles.backLink}>
-        &lt; MyProfile Page
+        ⬅︎ Profile
       </Link>
       <div className={styles.overlay}>
         <h1 className={styles.title}>プロフィール新規作成</h1>
