@@ -128,6 +128,7 @@ export default function ProfileDetail() {
 
         if (optionResponse.ok) {
           const optionData = await optionResponse.json();
+          console.log("オプションプロファイル取得データ:", optionData);
           setOptionProfiles(optionData.option_profiles || []);
         } else {
           console.log("Option profiles response error:", optionResponse.status);
@@ -730,12 +731,14 @@ export default function ProfileDetail() {
             </div>
           )}
 
-          {optionProfiles.map((optionProfile, idx) => (
-            <div className={styles.row} key={idx}>
-              <span className={styles.label}>{optionProfile.title}</span>
-              <span className={styles.value}>{optionProfile.content}</span>
-            </div>
-          ))}
+          {[...optionProfiles]
+            .sort((a, b) => a.id - b.id)
+            .map((optionProfile, idx) => (
+              <div className={styles.row} key={idx}>
+                <span className={styles.label}>{optionProfile.title}</span>
+                <span className={styles.value}>{optionProfile.content}</span>
+              </div>
+            ))}
         </div>
 
         {links.length > 0 && (
