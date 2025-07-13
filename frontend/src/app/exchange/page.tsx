@@ -124,6 +124,9 @@ function ExchangePageContent() {
     setError(null);
 
     try {
+      // event_dateが空の場合は今日の日付を使用する
+      const currentDate = eventInfo.eventDate || new Date().toISOString().split('T')[0];
+      
       let response;
       
       // 既存のコネクションがある場合は更新、そうでなければ新規作成
@@ -136,7 +139,7 @@ function ExchangePageContent() {
           },
           body: JSON.stringify({
             event_name: eventInfo.eventName,
-            event_date: eventInfo.eventDate,
+            event_date: currentDate, // 空の場合は今日の日付を使用
             memo: eventInfo.memo,
           }),
         });
@@ -155,7 +158,7 @@ function ExchangePageContent() {
             profile_id: selectedProfileId,
             connect_user_profile_id: scannedProfile.id,
             event_name: eventInfo.eventName,
-            event_date: eventInfo.eventDate,
+            event_date: currentDate, // 空の場合は今日の日付を使用
             memo: eventInfo.memo
           }),
         });
@@ -169,7 +172,7 @@ function ExchangePageContent() {
             profile_id: scannedProfile.id,
             connect_user_profile_id: selectedProfileId,
             event_name: eventInfo.eventName,
-            event_date: eventInfo.eventDate,
+            event_date: currentDate, // 空の場合は今日の日付を使用
             memo: eventInfo.memo
           }),
         });

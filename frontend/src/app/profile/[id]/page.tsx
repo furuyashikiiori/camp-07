@@ -398,6 +398,9 @@ export default function ProfileDetail() {
       if (isUpdate) {
         if (friendForm.existingConnectionId && friendForm.existingConnectionId > 0) {
           // 正常な既存のコネクションがある場合は更新
+          // event_dateが空の場合は今日の日付を使用する
+          const currentDate = friendForm.eventDate || new Date().toISOString().split('T')[0];
+          
           response = await authenticatedFetch(
             `/api/connections/${friendForm.existingConnectionId}`,
             {
@@ -407,7 +410,7 @@ export default function ProfileDetail() {
               },
               body: JSON.stringify({
                 event_name: friendForm.eventName,
-                event_date: friendForm.eventDate,
+                event_date: currentDate,
                 memo: friendForm.memo,
               }),
             }
@@ -421,6 +424,9 @@ export default function ProfileDetail() {
           // この場合は新規作成する
           console.log("リストページからの遷移ですが、コネクションIDが見つからないため新規作成します");
           
+          // event_dateが空の場合は今日の日付を使用する
+          const currentDate = friendForm.eventDate || new Date().toISOString().split('T')[0];
+          
           const myToFriendResponse = await authenticatedFetch(
             "/api/connections",
             {
@@ -432,7 +438,7 @@ export default function ProfileDetail() {
                 profile_id: selectedProfileId,
                 connect_user_profile_id: profile.id,
                 event_name: friendForm.eventName,
-                event_date: friendForm.eventDate,
+                event_date: currentDate,
                 memo: friendForm.memo,
               }),
             }
@@ -481,6 +487,9 @@ export default function ProfileDetail() {
         const referrer = sessionStorage.getItem("referrer");
         const isQRExchange = referrer === "qrpage" || referrer === "exchange";
         
+        // event_dateが空の場合は今日の日付を使用する
+        const currentDate = friendForm.eventDate || new Date().toISOString().split('T')[0];
+        
         // 自分から相手へのコネクションを作成
         const myToFriendResponse = await authenticatedFetch(
           "/api/connections",
@@ -493,7 +502,7 @@ export default function ProfileDetail() {
               profile_id: selectedProfileId,
               connect_user_profile_id: profile.id,
               event_name: friendForm.eventName,
-              event_date: friendForm.eventDate,
+              event_date: currentDate,
               memo: friendForm.memo,
             }),
           }
@@ -518,7 +527,7 @@ export default function ProfileDetail() {
                 connect_user_profile_id: selectedProfileId,
                 // QRコード交換時は相手側も同じイベント情報を持つ
                 event_name: friendForm.eventName,
-                event_date: friendForm.eventDate,
+                event_date: currentDate, // 空の場合は今日の日付
                 memo: friendForm.memo,
               }),
             }
