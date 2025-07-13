@@ -294,17 +294,19 @@ export default function ProfileEditPage() {
         if (linksResponse.ok) {
           const linksData = await linksResponse.json();
           existingLinks = linksData.links || [];
+          console.log('編集画面: 取得したリンク総数:', existingLinks.length);
+          existingLinks.forEach((link, index) => {
+            console.log(`編集画面: リンク${index + 1} - ID:${link.id}, Title:${link.title}`);
+          });
         }
 
-        // SNSリンクを分離
-        const snsLinks = existingLinks.filter(link => 
-          ['Twitter', 'Instagram', 'GitHub'].includes(link.title)
-        );
-        const otherLinks = existingLinks.filter(link => 
-          !['Twitter', 'Instagram', 'GitHub'].includes(link.title)
-        );
+        // 全てのリンクを統一して扱う（プリセットリンクも含む）
+        console.log('編集画面: 全リンク:', existingLinks);
+        existingLinks.forEach((link, index) => {
+          console.log(`編集画面: リンク${index + 1} - ID:${link.id}, Title:'${link.title}'`);
+        });
 
-        // フォームデータを設定
+        // フォームデータを設定（全てのリンクを統一して扱う）
         setFormData({
           profileTitle: profileData.title || '',
           profileDescription: profileData.description || '',
@@ -315,28 +317,39 @@ export default function ProfileEditPage() {
           birthplace: profileData.hometown || '',
           hobby: profileData.hobby || '',
           sns: {
-            twitter: snsLinks.find(link => link.title === 'Twitter')?.url || '',
-            instagram: snsLinks.find(link => link.title === 'Instagram')?.url || '',
-            github: snsLinks.find(link => link.title === 'GitHub')?.url || '',
+            twitter: '',
+            instagram: '',
+            github: '',
           },
           optionalFields: existingOptions.length > 0 
             ? existingOptions.map(opt => ({ id: opt.id, label: opt.title, value: opt.content }))
             : [{ label: '', value: '' }],
-          otherLinks: otherLinks.length > 0 
-            ? otherLinks.map(link => ({ 
-                id: link.id, 
-                isPreset: presetTypes.some(preset => preset.name === link.title),
-                presetType: presetTypes.find(preset => preset.name === link.title),
-                label: link.title, 
-                url: link.url, 
-                description: link.description || '',
-                isNew: false
-              }))
-            : [],
+          otherLinks: existingLinks.map(link => {
+            // プリセットリンクの名前をチェック
+            const presetNames = ['Twitter/X', 'GitHub', 'Instagram', 'YouTube', 'LinkedIn', 'TikTok', 'Facebook', 'Email'];
+            const isPreset = presetNames.includes(link.title);
+            const presetType = Array.isArray(presetTypes) ? presetTypes.find(preset => preset.name === link.title) : undefined;
+            
+            return {
+              id: link.id, 
+              isPreset: isPreset,
+              presetType: presetType,
+              label: link.title, 
+              url: link.url, 
+              description: link.description || '',
+              isNew: false
+            };
+          }),
         });
         
         // 元のリンク情報を保存
         setOriginalLinks(existingLinks);
+        
+        console.log('編集画面: setFormDataで設定されたotherLinks:', existingLinks.map(link => ({
+          id: link.id,
+          title: link.title,
+          url: link.url
+        })));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'エラーが発生しました');
       } finally {
@@ -572,19 +585,6 @@ export default function ProfileEditPage() {
       }
     }
 
-    // SNSリンクの削除と再作成
-    const snsLinks = ['Twitter', 'Instagram', 'GitHub'];
-    for (const snsType of snsLinks) {
-      try {
-        // 既存のSNSリンクを削除（エラーが出ても続行）
-        await authenticatedFetch(`/api/links/profile/${params.id}/${snsType}`, {
-          method: 'DELETE',
-        });
-      } catch {
-        // 削除エラーは無視
-      }
-    }
-
     // バックエンドからプリセットアイコン情報を取得
     let presetIcons: Record<string, string> = {};
     try {
@@ -595,8 +595,7 @@ export default function ProfileEditPage() {
         if (Array.isArray(commonTypes)) {
           presetIcons = commonTypes.reduce(
             (acc: Record<string, string>, type: { name: string; icon_url: string }) => {
-              const key = type.name.includes('/') ? type.name.split('/')[0] : type.name;
-              acc[key] = type.icon_url;
+              acc[type.name] = type.icon_url;
               return acc;
             },
             {}
@@ -605,43 +604,6 @@ export default function ProfileEditPage() {
       }
     } catch (error) {
       console.error('プリセットアイコン情報の取得エラー:', error);
-    }
-    
-    // フォールバック用のデフォルトアイコン
-    if (Object.keys(presetIcons).length === 0) {
-      presetIcons = {
-        Twitter: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg',
-        Instagram: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg',
-        GitHub: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg',
-      };
-    }
-
-    // SNSリンクを保存
-    const snsLinksData = [
-      { title: 'Twitter', url: formData.sns.twitter },
-      { title: 'Instagram', url: formData.sns.instagram },
-      { title: 'GitHub', url: formData.sns.github },
-    ];
-
-    for (const link of snsLinksData) {
-      if (link.url.trim()) {
-        try {
-          const snsLinkData = {
-            user_id: profile?.user_id,
-            profile_id: Number(params.id),
-            title: link.title,
-            url: link.url,
-            image_url: presetIcons[link.title],
-          };
-
-          await authenticatedFetch('/api/links', {
-            method: 'POST',
-            body: JSON.stringify(snsLinkData),
-          });
-        } catch (error) {
-          console.error('SNSリンクの保存エラー:', error);
-        }
-      }
     }
 
     // 既存リンクの更新処理
@@ -719,7 +681,13 @@ export default function ProfileEditPage() {
           console.log('新規リンク作成レスポンス:', response.status, response.ok);
           
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
+            const errorText = await response.text().catch(() => '');
+            let errorData;
+            try {
+              errorData = JSON.parse(errorText);
+            } catch {
+              errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` };
+            }
             console.error('新規リンク作成エラー詳細:', errorData);
           } else {
             const resultData = await response.json().catch(() => ({}));
@@ -881,21 +849,25 @@ export default function ProfileEditPage() {
           <div className={styles.linksSection}>
             <h3>リンク</h3>
 
-            {formData.otherLinks
-              .filter(link => !link.isDeleted)
-              .map((link) => {
-                // 元のインデックスを維持するために元配列からインデックスを探す
-                const originalIndex = formData.otherLinks.findIndex(l => l.id === link.id);
-                return (
-                  <LinkInputComponent
-                    key={link.id || originalIndex}
-                    link={link}
-                    index={originalIndex}
-                    onUpdate={updateLink}
-                    onRemove={removeLink}
-                  />
-                );
-              })}
+            {(() => {
+              console.log('編集画面: 表示時のformData.otherLinks:', formData.otherLinks);
+              console.log('編集画面: フィルタ後のリンク:', formData.otherLinks.filter(link => !link.isDeleted));
+              return formData.otherLinks
+                .filter(link => !link.isDeleted)
+                .map((link) => {
+                  // 元のインデックスを維持するために元配列からインデックスを探す
+                  const originalIndex = formData.otherLinks.findIndex(l => l.id === link.id);
+                  return (
+                    <LinkInputComponent
+                      key={link.id || originalIndex}
+                      link={link}
+                      index={originalIndex}
+                      onUpdate={updateLink}
+                      onRemove={removeLink}
+                    />
+                  );
+                });
+            })()}
 
             <button
               type="button"
